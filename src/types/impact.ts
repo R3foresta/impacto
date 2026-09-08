@@ -1,15 +1,14 @@
 import { z } from 'zod'
 
-const nonEmptyTextSchema = z.string().trim().min(1)
-const optionalTextSchema = nonEmptyTextSchema.nullable().optional()
-const optionalTimestampSchema = z.string().datetime({ offset: true }).nullable().optional()
-const optionalDateSchema = z.string().date().nullable().optional()
-const optionalCountSchema = z.number().int().nonnegative().nullable().optional()
+const idSchema = z.number().int().positive()
+const nonNegativeIntegerSchema = z.number().int().nonnegative()
+const nonNegativeNumberSchema = z.number().finite().nonnegative()
+const nullableTextSchema = z.string().nullable()
+const nullableDateSchema = z.string().date().nullable()
+const nullableTimestampSchema = z.string().datetime({ offset: true }).nullable()
 
-function isSafeNavigationUrl(value: string): boolean {
-  if (value.startsWith('/') && !value.startsWith('//')) {
-    return true
-  }
+function isSafePublicUrl(value: string): boolean {
+  if (value.startsWith('/') && !value.startsWith('//')) return true
 
   try {
     const url = new URL(value)
@@ -19,253 +18,189 @@ function isSafeNavigationUrl(value: string): boolean {
   }
 }
 
-const optionalUrlSchema = nonEmptyTextSchema
-  .refine(isSafeNavigationUrl, {
-    message: 'URL must use http(s) or be a same-origin path.',
-  })
-  .nullable()
-  .optional()
-
-export const impactEntityIdSchema = z.union([
-  nonEmptyTextSchema,
-  z.number().int().positive(),
-])
-
-export type ImpactEntityId = z.infer<typeof impactEntityIdSchema>
-
-export const impactStatusCodeSchema = z.enum([
-  'planned',
-  'active',
-  'in_progress',
-  'completed',
-  'paused',
-  'at_risk',
-  'cancelled',
-  'unknown',
-])
-
-export type ImpactStatusCode = z.infer<typeof impactStatusCodeSchema>
-
-export const impactStatusSchema = z.object({
-  code: impactStatusCodeSchema,
-  label: optionalTextSchema,
-  detail: optionalTextSchema,
-  updatedAt: optionalTimestampSchema,
+const publicUrlSchema = z.string().refine(isSafePublicUrl, {
+  message: 'URL must use http(s) or be a same-origin path.',
 })
 
-export type ImpactStatus = z.infer<typeof impactStatusSchema>
-
-export const impactVerificationStatusSchema = z.enum([
-  'verified',
-  'partially_verified',
-  'pending_verification',
-  'not_available',
-])
-
-export type ImpactVerificationStatus = z.infer<
-  typeof impactVerificationStatusSchema
->
-
-export const impactSourceReferenceKindSchema = z.enum([
-  'traceability_record',
-  'evidence',
-  'report',
-  'external_reference',
-])
-
-export const impactSourceReferenceSchema = z.object({
-  id: impactEntityIdSchema,
-  kind: impactSourceReferenceKindSchema,
-  label: nonEmptyTextSchema,
-  url: optionalUrlSchema,
+export const impactOrganizationSchema = z.object({
+  id: idSchema,
+  name: z.string().trim().min(1),
+  logo: publicUrlSchema.nullable(),
+  description: nullableTextSchema,
 })
+export type ImpactOrganization = z.infer<typeof impactOrganizationSchema>
 
-export type ImpactSourceReference = z.infer<
-  typeof impactSourceReferenceSchema
->
-
-export const impactVerificationSchema = z.object({
-  status: impactVerificationStatusSchema,
-  verifiedAt: optionalTimestampSchema,
-  sourceReferences: z.array(impactSourceReferenceSchema).optional(),
-  note: optionalTextSchema,
-}).superRefine((verification, context) => {
-  const hasVerificationClaim =
-    verification.status === 'verified' ||
-    verification.status === 'partially_verified'
-  const hasSources = (verification.sourceReferences?.length ?? 0) > 0
-
-  if (hasVerificationClaim && !hasSources) {
-    context.addIssue({
-      code: 'custom',
-      path: ['sourceReferences'],
-      message: 'A verification claim requires at least one source reference.',
-    })
-  }
+export const impactMetricsSchema = z.object({
+  treesTarget: nonNegativeIntegerSchema,
+  treesPlantedInitial: nonNegativeIntegerSchema,
+  treesReplanted: nonNegativeIntegerSchema,
+  treesAliveReported: nonNegativeIntegerSchema,
+  progressPct: z.number().finite().min(0).max(100).nullable(),
+  survivalPct: z.number().finite().min(0).max(100).nullable(),
+  hectares: nonNegativeNumberSchema,
 })
-
-export type ImpactVerification = z.infer<typeof impactVerificationSchema>
-
-export const moneySchema = z.object({
-  amount: z.number().finite().nonnegative(),
-  currency: z.string().regex(/^[A-Z]{3}$/),
-})
-
-export type Money = z.infer<typeof moneySchema>
-
-export const companySchema = z.object({
-  id: impactEntityIdSchema,
-  name: nonEmptyTextSchema,
-  legalName: optionalTextSchema,
-  logoUrl: optionalUrlSchema,
-  currentStatus: impactStatusSchema.nullable().optional(),
-  verification: impactVerificationSchema.nullable().optional(),
-  updatedAt: optionalTimestampSchema,
-})
-
-export type Company = z.infer<typeof companySchema>
-
-export const impactSummarySchema = z.object({
-  totalContribution: moneySchema.nullable().optional(),
-  treesFunded: optionalCountSchema,
-  treesPlanted: optionalCountSchema,
-  treesAlive: optionalCountSchema,
-  projectsInvolved: optionalCountSchema,
-  currentStatus: impactStatusSchema.nullable().optional(),
-  asOf: optionalTimestampSchema,
-  verification: impactVerificationSchema.nullable().optional(),
-})
-
-export type ImpactSummary = z.infer<typeof impactSummarySchema>
-
-export const organizationRoleSchema = z.enum([
-  'implementer',
-  'community_partner',
-  'technical_partner',
-  'funder',
-  'monitoring_partner',
-  'other',
-])
-
-export const responsibleOrganizationSchema = z.object({
-  id: impactEntityIdSchema,
-  name: nonEmptyTextSchema,
-  role: organizationRoleSchema.nullable().optional(),
-})
-
-export type ResponsibleOrganization = z.infer<
-  typeof responsibleOrganizationSchema
->
-
-export const impactProjectSchema = z.object({
-  id: impactEntityIdSchema,
-  name: nonEmptyTextSchema,
-  description: optionalTextSchema,
-  ecosystem: optionalTextSchema,
-  currentStatus: impactStatusSchema.nullable().optional(),
-  locationIds: z.array(impactEntityIdSchema).optional(),
-  species: z.array(nonEmptyTextSchema).optional(),
-  responsibleOrganizations: z.array(responsibleOrganizationSchema).optional(),
-  totalContribution: moneySchema.nullable().optional(),
-  treesFunded: optionalCountSchema,
-  treesPlanted: optionalCountSchema,
-  treesAlive: optionalCountSchema,
-  plantingDate: optionalDateSchema,
-  verification: impactVerificationSchema.nullable().optional(),
-})
-
-export type ImpactProject = z.infer<typeof impactProjectSchema>
-
-export const impactCoordinatesSchema = z.object({
-  latitude: z.number().finite().min(-90).max(90),
-  longitude: z.number().finite().min(-180).max(180),
-})
-
-export type ImpactCoordinates = z.infer<typeof impactCoordinatesSchema>
-
-export const impactLocationSchema = z.object({
-  id: impactEntityIdSchema,
-  name: nonEmptyTextSchema,
-  country: optionalTextSchema,
-  region: optionalTextSchema,
-  municipality: optionalTextSchema,
-  communityName: optionalTextSchema,
-  ecosystem: optionalTextSchema,
-  coordinates: impactCoordinatesSchema.nullable().optional(),
-  projectIds: z.array(impactEntityIdSchema).optional(),
-  currentStatus: impactStatusSchema.nullable().optional(),
-  verification: impactVerificationSchema.nullable().optional(),
-})
-
-export type ImpactLocation = z.infer<typeof impactLocationSchema>
-
-export const impactTimelineStageSchema = z.enum([
-  'collection',
-  'nursery',
-  'allocation',
-  'planting',
-  'monitoring',
-  'other',
-])
-
-export const impactTimelineEventSchema = z.object({
-  id: impactEntityIdSchema,
-  stage: impactTimelineStageSchema,
-  title: nonEmptyTextSchema,
-  description: optionalTextSchema,
-  status: impactStatusSchema,
-  occurredAt: optionalTimestampSchema,
-  projectId: impactEntityIdSchema.nullable().optional(),
-  locationId: impactEntityIdSchema.nullable().optional(),
-  evidenceIds: z.array(impactEntityIdSchema).optional(),
-  verification: impactVerificationSchema.nullable().optional(),
-})
-
-export type ImpactTimelineEvent = z.infer<typeof impactTimelineEventSchema>
-
-export const impactEvidenceTypeSchema = z.enum([
-  'photo',
-  'document',
-  'geolocation',
-  'monitoring_record',
-  'certificate',
-  'other',
-])
+export type ImpactMetrics = z.infer<typeof impactMetricsSchema>
 
 export const impactEvidenceSchema = z.object({
-  id: impactEntityIdSchema,
-  type: impactEvidenceTypeSchema,
-  title: nonEmptyTextSchema,
-  description: optionalTextSchema,
-  url: optionalUrlSchema,
-  capturedAt: optionalTimestampSchema,
-  projectId: impactEntityIdSchema.nullable().optional(),
-  locationId: impactEntityIdSchema.nullable().optional(),
-  timelineEventId: impactEntityIdSchema.nullable().optional(),
-  currentStatus: impactStatusSchema.nullable().optional(),
-  verification: impactVerificationSchema.nullable().optional(),
+  id: idSchema,
+  plantingRecordId: idSchema,
+  campaignId: idSchema,
+  subcampaignId: idSchema,
+  title: nullableTextSchema,
+  imageUrl: publicUrlSchema,
+  takenAt: nullableTimestampSchema,
+  isPrimary: z.boolean(),
 })
-
 export type ImpactEvidence = z.infer<typeof impactEvidenceSchema>
 
-export const impactCompaniesResponseSchema = z.object({
-  companies: z.array(companySchema),
+export const impactPlantingPointSchema = z.object({
+  id: idSchema,
+  campaignId: idSchema,
+  subcampaignId: idSchema,
+  latitude: z.number().finite().min(-90).max(90),
+  longitude: z.number().finite().min(-180).max(180),
+  plantedAt: z.string().date(),
+  treesPlanted: nonNegativeIntegerSchema,
+  replacement: z.boolean(),
+  withinArea: z.boolean(),
+  distanceToAreaMeters: nonNegativeNumberSchema.nullable(),
+  evidenceCount: nonNegativeIntegerSchema,
 })
+export type ImpactPlantingPoint = z.infer<typeof impactPlantingPointSchema>
 
-export type ImpactCompaniesResponse = z.infer<
-  typeof impactCompaniesResponseSchema
->
+const geoJsonPositionSchema = z.array(z.number().finite()).min(2)
+const geoJsonLinearRingSchema = z.array(geoJsonPositionSchema)
 
-export const impactCompanyDashboardSchema = z.object({
-  company: companySchema,
-  summary: impactSummarySchema,
-  projects: z.array(impactProjectSchema),
+export const geoJsonPolygonSchema = z.object({
+  type: z.literal('Polygon'),
+  coordinates: z.array(geoJsonLinearRingSchema),
+})
+export type GeoJsonPolygon = z.infer<typeof geoJsonPolygonSchema>
+
+export const impactAreaSchema = z.object({
+  campaignId: idSchema,
+  subcampaignId: idSchema,
+  name: z.string().trim().min(1),
+  locationName: nullableTextSchema,
+  hectares: nonNegativeNumberSchema,
+  polygon: geoJsonPolygonSchema.nullable(),
+})
+export type ImpactArea = z.infer<typeof impactAreaSchema>
+
+export const impactLocationSchema = z.object({
+  id: idSchema,
+  name: z.string().trim().min(1),
+  subcampaignsCount: nonNegativeIntegerSchema,
+})
+export type ImpactLocation = z.infer<typeof impactLocationSchema>
+
+export const impactCampaignCardSchema = z.object({
+  id: idSchema,
+  name: z.string().trim().min(1),
+  type: z.string().trim().min(1),
+  description: nullableTextSchema,
+  status: z.string().trim().min(1),
+  plannedStartDate: nullableDateSchema,
+  plannedEndDate: nullableDateSchema,
+  subcampaignsCount: nonNegativeIntegerSchema,
+  plantingRecordsCount: nonNegativeIntegerSchema,
+  evidenceCount: nonNegativeIntegerSchema,
+  impact: impactMetricsSchema,
   locations: z.array(impactLocationSchema),
-  timeline: z.array(impactTimelineEventSchema),
+  evidencePreview: z.array(impactEvidenceSchema),
+})
+export type ImpactCampaignCard = z.infer<typeof impactCampaignCardSchema>
+
+export const impactSpeciesSchema = z.object({
+  id: idSchema,
+  commonName: nullableTextSchema,
+  scientificName: nullableTextSchema,
+  quantity: nonNegativeIntegerSchema,
+})
+export type ImpactSpecies = z.infer<typeof impactSpeciesSchema>
+
+export const impactPlantingRecordSchema = z.object({
+  id: idSchema,
+  subcampaignId: idSchema,
+  plantedAt: z.string().date(),
+  latitude: z.number().finite().min(-90).max(90),
+  longitude: z.number().finite().min(-180).max(180),
+  treesPlanted: nonNegativeIntegerSchema,
+  replacement: z.boolean(),
+  withinArea: z.boolean(),
+  distanceToAreaMeters: nonNegativeNumberSchema.nullable(),
+  species: z.array(impactSpeciesSchema),
   evidence: z.array(impactEvidenceSchema),
-  generatedAt: optionalTimestampSchema,
+})
+export type ImpactPlantingRecord = z.infer<typeof impactPlantingRecordSchema>
+
+export const impactSubcampaignSchema = z.object({
+  id: idSchema,
+  campaignId: idSchema,
+  name: z.string().trim().min(1),
+  description: nullableTextSchema,
+  status: z.string().trim().min(1),
+  maintenancePhase: z.string().trim().min(1),
+  location: z.object({ id: idSchema, name: nullableTextSchema }),
+  hectares: nonNegativeNumberSchema,
+  impact: impactMetricsSchema,
+  polygon: geoJsonPolygonSchema.nullable(),
+  plantingRecordsCount: nonNegativeIntegerSchema,
+  evidenceCount: nonNegativeIntegerSchema,
+})
+export type ImpactSubcampaign = z.infer<typeof impactSubcampaignSchema>
+
+export const impactAttributionSchema = z.object({
+  label: z.literal('Impacto asociado'),
+  method: z.literal('CAMPAIGN_ASSOCIATION'),
+  quantified: z.literal(false),
+  note: z.string().trim().min(1),
 })
 
-export type ImpactCompanyDashboard = z.infer<
-  typeof impactCompanyDashboardSchema
->
+export const impactMapSchema = z.object({
+  plantingPoints: z.array(impactPlantingPointSchema),
+  areas: z.array(impactAreaSchema),
+})
+export type ImpactMapData = z.infer<typeof impactMapSchema>
+
+export const impactOrganizationsResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.array(impactOrganizationSchema),
+})
+
+export const impactDashboardSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    organization: impactOrganizationSchema,
+    attribution: impactAttributionSchema,
+    summary: impactMetricsSchema.extend({
+      campaignsCount: nonNegativeIntegerSchema,
+      subcampaignsCount: nonNegativeIntegerSchema,
+      locationsCount: nonNegativeIntegerSchema,
+      plantingRecordsCount: nonNegativeIntegerSchema,
+      evidenceCount: nonNegativeIntegerSchema,
+      lastActivityAt: nullableTimestampSchema,
+    }),
+    campaigns: z.array(impactCampaignCardSchema),
+    map: impactMapSchema,
+    evidencePreview: z.array(impactEvidenceSchema),
+    generatedAt: z.string().datetime({ offset: true }),
+  }),
+})
+export type ImpactDashboardResponse = z.infer<typeof impactDashboardSchema>
+export type ImpactDashboard = ImpactDashboardResponse['data']
+
+export const impactCampaignDetailSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    organization: impactOrganizationSchema,
+    campaign: impactCampaignCardSchema,
+    subcampaigns: z.array(impactSubcampaignSchema),
+    plantingRecords: z.array(impactPlantingRecordSchema),
+    map: impactMapSchema,
+    evidence: z.array(impactEvidenceSchema),
+    generatedAt: z.string().datetime({ offset: true }),
+  }),
+})
+export type ImpactCampaignDetailResponse = z.infer<typeof impactCampaignDetailSchema>
+export type ImpactCampaignDetail = ImpactCampaignDetailResponse['data']

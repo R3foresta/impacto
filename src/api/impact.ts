@@ -1,25 +1,21 @@
 import { z } from 'zod'
 import {
-  impactCompaniesResponseSchema,
-  impactCompanyDashboardSchema,
-  type ImpactCompaniesResponse,
-  type ImpactCompanyDashboard,
-  type ImpactEntityId,
+  impactCampaignDetailSchema,
+  impactDashboardSchema,
+  impactOrganizationsResponseSchema,
+  type ImpactCampaignDetail,
+  type ImpactDashboard,
+  type ImpactOrganization,
 } from '../types/impact'
 
 const impactApiNamespace = '/api/v1/impact'
-const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+const configuredApiBaseUrl =
+  import.meta.env.VITE_API_URL?.trim() ??
+  import.meta.env.VITE_API_BASE_URL?.trim()
 const sameOriginBaseUrl = typeof window === 'undefined' ? '' : window.location.origin
-const impactApiBaseUrl = (configuredApiBaseUrl || sameOriginBaseUrl).replace(
-  /\/+$/,
-  '',
-)
+const impactApiBaseUrl = (configuredApiBaseUrl || sameOriginBaseUrl).replace(/\/+$/, '')
 
-type ImpactApiErrorOptions = {
-  endpoint: string
-  status?: number
-  cause?: unknown
-}
+type ImpactApiErrorOptions = { endpoint: string; status?: number; cause?: unknown }
 
 export class ImpactApiError extends Error {
   readonly endpoint: string
@@ -33,46 +29,26 @@ export class ImpactApiError extends Error {
   }
 }
 
-type ResponseBody = {
-  value: unknown
-  isJson: boolean
-  isEmpty: boolean
-}
-
-async function readResponseBody(response: Response): Promise<ResponseBody> {
+async function readResponseBody(response: Response): Promise<unknown> {
   const text = await response.text()
-
-  if (!text.trim()) {
-    return { value: undefined, isJson: false, isEmpty: true }
-  }
+  if (!text.trim()) return undefined
 
   try {
-    return { value: JSON.parse(text) as unknown, isJson: true, isEmpty: false }
+    return JSON.parse(text) as unknown
   } catch {
-    return { value: text, isJson: false, isEmpty: false }
+    return text
   }
 }
 
 function getErrorDetail(payload: unknown): string | undefined {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return undefined
-  }
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined
 
   const message = (payload as Record<string, unknown>).message
+  if (typeof message === 'string') return message
+  if (!Array.isArray(message)) return undefined
 
-  if (typeof message === 'string') {
-    return message
-  }
-
-  if (Array.isArray(message)) {
-    const details = message.filter(
-      (item): item is string => typeof item === 'string',
-    )
-
-    return details.length > 0 ? details.join('; ') : undefined
-  }
-
-  return undefined
+  const details = message.filter((item): item is string => typeof item === 'string')
+  return details.length > 0 ? details.join('; ') : undefined
 }
 
 function formatValidationError(error: z.ZodError): string {
@@ -82,18 +58,11 @@ function formatValidationError(error: z.ZodError): string {
     .join('; ')
 }
 
-function getImpactApiUrl(path: string): string {
-  return `${impactApiBaseUrl}${impactApiNamespace}${path}`
-}
-
-async function requestImpact<T>(
-  endpoint: string,
-  schema: z.ZodType<T>,
-): Promise<T> {
+async function requestImpact<T>(endpoint: string, schema: z.ZodType<T>): Promise<T> {
   let response: Response
 
   try {
-    response = await fetch(getImpactApiUrl(endpoint), {
+    response = await fetch(`${impactApiBaseUrl}${impactApiNamespace}${endpoint}`, {
       headers: { Accept: 'application/json' },
     })
   } catch (cause) {
@@ -104,50 +73,48 @@ async function requestImpact<T>(
   }
 
   const body = await readResponseBody(response)
-
   if (!response.ok) {
-    const statusText = response.statusText ? ` ${response.statusText}` : ''
-    const detail = getErrorDetail(body.value)
-    const suffix = detail ? `: ${detail}` : ''
-
+    const detail = getErrorDetail(body)
     throw new ImpactApiError(
-      `Impact API request to ${endpoint} failed with ${response.status}${statusText}${suffix}.`,
+      `Impact API request to ${endpoint} failed with ${response.status}${detail ? `: ${detail}` : ''}.`,
       { endpoint, status: response.status },
     )
   }
 
-  if (!body.isJson) {
-    const responseType = body.isEmpty ? 'an empty response' : 'a non-JSON response'
-
-    throw new ImpactApiError(
-      `Impact API returned ${responseType} for ${endpoint}.`,
-      { endpoint, status: response.status },
-    )
-  }
-
-  const parsed = schema.safeParse(body.value)
-
+  const parsed = schema.safeParse(body)
   if (!parsed.success) {
     throw new ImpactApiError(
       `Impact API response for ${endpoint} does not match the expected contract: ${formatValidationError(parsed.error)}.`,
       { endpoint, status: response.status, cause: parsed.error },
     )
   }
-
   return parsed.data
 }
 
-export function getImpactCompanies(): Promise<ImpactCompaniesResponse> {
-  return requestImpact('/companies', impactCompaniesResponseSchema)
+const encodeId = (id: number | string) => encodeURIComponent(String(id))
+
+export async function getImpactOrganizations(): Promise<ImpactOrganization[]> {
+  const response = await requestImpact('/organizations', impactOrganizationsResponseSchema)
+  return response.data
 }
 
-export function getImpactCompanyDashboard(
-  companyId: ImpactEntityId,
-): Promise<ImpactCompanyDashboard> {
-  const encodedCompanyId = encodeURIComponent(String(companyId))
-
-  return requestImpact(
-    `/companies/${encodedCompanyId}/dashboard`,
-    impactCompanyDashboardSchema,
+export async function getImpactOrganizationDashboard(
+  organizationId: number | string,
+): Promise<ImpactDashboard> {
+  const response = await requestImpact(
+    `/organizations/${encodeId(organizationId)}/dashboard`,
+    impactDashboardSchema,
   )
+  return response.data
+}
+
+export async function getImpactCampaignDetail(
+  organizationId: number | string,
+  campaignId: number | string,
+): Promise<ImpactCampaignDetail> {
+  const response = await requestImpact(
+    `/organizations/${encodeId(organizationId)}/campaigns/${encodeId(campaignId)}`,
+    impactCampaignDetailSchema,
+  )
+  return response.data
 }

@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { getImpactCompanies } from '../api/impact'
-import { CompanySelector } from '../components/company/company-selector'
+import { getImpactOrganizations } from '../api/impact'
+import { OrganizationSelector } from '../components/company/company-selector'
 import { EmptyState } from '../components/feedback/empty-state'
 import { ErrorState } from '../components/feedback/error-state'
 import { LoadingState } from '../components/feedback/loading-state'
@@ -12,14 +12,14 @@ import { Card, CardContent } from '../components/ui/card'
 
 export function CompanySelectionPage() {
   const navigate = useNavigate()
-  const companiesQuery = useQuery({
-    queryKey: ['impact', 'companies'],
-    queryFn: getImpactCompanies,
+  const organizationsQuery = useQuery({
+    queryKey: ['impact', 'organizations'],
+    queryFn: getImpactOrganizations,
     staleTime: 60_000,
   })
 
-  function handleCompanySelect(companyId: string) {
-    void navigate(`/companies/${encodeURIComponent(companyId)}`)
+  function handleOrganizationSelect(organizationId: string) {
+    void navigate(`/organizations/${encodeURIComponent(organizationId)}`)
   }
 
   return (
@@ -54,32 +54,32 @@ export function CompanySelectionPage() {
             </div>
           </div>
 
-          {companiesQuery.isPending ? (
+          {organizationsQuery.isPending ? (
             <LoadingState detail="Consultando organizaciones disponibles." />
           ) : null}
-          {companiesQuery.isError ? (
+          {organizationsQuery.isError ? (
             <ErrorState
               action={{
                 label: 'Reintentar',
                 onClick: () => {
-                  void companiesQuery.refetch()
+                  void organizationsQuery.refetch()
                 },
               }}
               detail="No fue posible conectar con la fuente de impacto."
             />
           ) : null}
-          {companiesQuery.data && companiesQuery.data.companies.length === 0 ? (
+          {organizationsQuery.data?.length === 0 ? (
             <EmptyState
               detail="El backend no reporta organizaciones con impacto publicable."
               title="Sin organizaciones disponibles"
             />
           ) : null}
-          {companiesQuery.data && companiesQuery.data.companies.length > 0 ? (
+          {organizationsQuery.data && organizationsQuery.data.length > 0 ? (
             <Card>
               <CardContent className="space-y-5 py-6">
-                <CompanySelector
-                  companies={companiesQuery.data.companies}
-                  onSelect={handleCompanySelect}
+                <OrganizationSelector
+                  organizations={organizationsQuery.data}
+                  onSelect={handleOrganizationSelect}
                 />
                 <p className="flex items-center gap-2 text-sm text-[var(--text)]">
                   El portal muestra únicamente información publicada por la fuente de trazabilidad.

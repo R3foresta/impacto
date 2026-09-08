@@ -2,10 +2,10 @@ import { Leaf } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 type PortalHeaderProps = {
-  companyName?: string
+  organizationName?: string
 }
 
-export function PortalHeader({ companyName }: PortalHeaderProps) {
+export function PortalHeader({ organizationName }: PortalHeaderProps) {
   return (
     <header className="border-b border-[var(--border)] bg-[var(--bg)]">
       <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
@@ -21,9 +21,9 @@ export function PortalHeader({ companyName }: PortalHeaderProps) {
           <span aria-hidden="true" className="h-4 w-px bg-[var(--border)]" />
           <span className="text-sm text-[var(--text)]">Impacto</span>
         </Link>
-        {companyName ? (
+        {organizationName ? (
           <p className="max-w-56 truncate text-right text-sm text-[var(--text)]">
-            {companyName}
+            {organizationName}
           </p>
         ) : null}
       </div>

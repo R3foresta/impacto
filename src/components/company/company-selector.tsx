@@ -1,18 +1,18 @@
 import type { ChangeEvent } from 'react'
 
-import type { Company, ImpactEntityId } from '../../types/impact'
+import type { ImpactOrganization } from '../../types/impact'
 
-type CompanySelectorProps = {
-  companies: Company[]
-  selectedCompanyId?: ImpactEntityId
-  onSelect: (companyId: string) => void
+type OrganizationSelectorProps = {
+  organizations: ImpactOrganization[]
+  selectedOrganizationId?: number
+  onSelect: (organizationId: string) => void
 }
 
-export function CompanySelector({
-  companies,
-  selectedCompanyId,
+export function OrganizationSelector({
+  organizations,
+  selectedOrganizationId,
   onSelect,
-}: CompanySelectorProps) {
+}: OrganizationSelectorProps) {
   function handleChange(event: ChangeEvent<HTMLSelectElement>) {
     if (event.target.value) {
       onSelect(event.target.value)
@@ -31,12 +31,12 @@ export function CompanySelector({
         className="h-11 w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 text-sm text-[var(--text-h)] outline-none transition-colors focus:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         id="company-selector"
         onChange={handleChange}
-        value={selectedCompanyId == null ? '' : String(selectedCompanyId)}
+        value={selectedOrganizationId == null ? '' : String(selectedOrganizationId)}
       >
         <option value="">Selecciona una organización</option>
-        {companies.map((company) => (
-          <option key={String(company.id)} value={String(company.id)}>
-            {company.name}
+        {organizations.map((organization) => (
+          <option key={organization.id} value={organization.id}>
+            {organization.name}
           </option>
         ))}
       </select>

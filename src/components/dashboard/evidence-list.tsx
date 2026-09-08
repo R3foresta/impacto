@@ -1,92 +1,38 @@
-import { ExternalLink, FileText, Image, MapPin, ScanSearch } from 'lucide-react'
+import { Camera, ExternalLink } from 'lucide-react'
 
 import { formatDate } from '../../lib/formatters'
 import type { ImpactEvidence } from '../../types/impact'
 import { EmptyState } from '../feedback/empty-state'
+import { Badge } from '../ui/badge'
 import { Card, CardContent } from '../ui/card'
-import { VerificationStatus } from './verification-status'
 
-type EvidenceListProps = {
-  evidence: ImpactEvidence[]
-}
-
-type ImpactEvidenceType = ImpactEvidence['type']
-
-const evidenceLabels: Record<ImpactEvidenceType, string> = {
-  photo: 'Fotografía',
-  document: 'Documento',
-  geolocation: 'Geolocalización',
-  monitoring_record: 'Registro de monitoreo',
-  certificate: 'Certificado',
-  other: 'Evidencia',
-}
-
-function EvidenceIcon({ type }: { type: ImpactEvidenceType }) {
-  if (type === 'photo') {
-    return <Image aria-hidden="true" className="size-4" />
-  }
-
-  if (type === 'geolocation') {
-    return <MapPin aria-hidden="true" className="size-4" />
-  }
-
-  if (type === 'monitoring_record') {
-    return <ScanSearch aria-hidden="true" className="size-4" />
-  }
-
-  return <FileText aria-hidden="true" className="size-4" />
-}
+type EvidenceListProps = { evidence: ImpactEvidence[] }
 
 export function EvidenceList({ evidence }: EvidenceListProps) {
   return (
     <section aria-labelledby="evidence-title" className="space-y-4">
       <div>
-        <p className="text-sm font-medium text-forest-700">Respaldo</p>
-        <h2
-          className="mt-1 text-xl font-semibold tracking-tight text-[var(--text-h)]"
-          id="evidence-title"
-        >
-          Evidencia disponible
-        </h2>
+        <p className="text-sm font-medium text-forest-700">Respaldo fotográfico</p>
+        <h2 className="mt-1 text-xl font-semibold tracking-tight text-[var(--text-h)]" id="evidence-title">Evidencia disponible</h2>
       </div>
       {evidence.length === 0 ? (
-        <EmptyState
-          detail="No hay evidencia publicable para esta contribución."
-          title="Sin evidencia disponible"
-        />
+        <EmptyState detail="No hay fotografías publicables para este impacto." title="Sin evidencia disponible" />
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {evidence.map((item) => (
-            <Card key={String(item.id)}>
-              <CardContent className="flex gap-3 py-5">
-                <span className="grid size-9 shrink-0 place-items-center rounded-md bg-mist-100 text-forest-800">
-                  <EvidenceIcon type={item.type} />
-                </span>
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <h3 className="font-medium text-[var(--text-h)]">{item.title}</h3>
-                      <p className="mt-1 text-sm text-[var(--text)]">
-                        {evidenceLabels[item.type]} · {formatDate(item.capturedAt)}
-                      </p>
-                    </div>
-                    {item.url ? (
-                      <a
-                        aria-label={`Abrir ${item.title}`}
-                        className="rounded-md p-1 text-forest-800 outline-none transition-colors hover:bg-mist-100 focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                        href={item.url}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <ExternalLink aria-hidden="true" className="size-4" />
-                      </a>
-                    ) : null}
+            <Card className="overflow-hidden" key={item.id}>
+              <a href={item.imageUrl} rel="noreferrer" target="_blank">
+                <img alt={item.title ?? `Evidencia de plantación ${item.plantingRecordId}`} className="aspect-[4/3] w-full bg-mist-100 object-cover" loading="lazy" src={item.imageUrl} />
+              </a>
+              <CardContent className="space-y-2 py-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex gap-2">
+                    <Camera aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-forest-700" />
+                    <div><h3 className="font-medium text-[var(--text-h)]">{item.title ?? 'Evidencia de plantación'}</h3><p className="mt-1 text-sm text-[var(--text)]">{formatDate(item.takenAt)}</p></div>
                   </div>
-                  {item.description ? (
-                    <p className="text-sm leading-6 text-[var(--text)]">{item.description}</p>
-                  ) : null}
-                  <VerificationStatus verification={item.verification} />
+                  <a aria-label="Abrir imagen" className="rounded-md p-1 text-forest-800 hover:bg-mist-100 focus-visible:ring-2 focus-visible:ring-[var(--accent)]" href={item.imageUrl} rel="noreferrer" target="_blank"><ExternalLink aria-hidden="true" className="size-4" /></a>
                 </div>
+                {item.isPrimary ? <Badge variant="secondary">Principal</Badge> : null}
               </CardContent>
             </Card>
           ))}
