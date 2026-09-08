@@ -15,8 +15,16 @@ export function PortalHeader({ organizationName, reportNavigation = false }: Por
           className="flex shrink-0 items-center gap-3 rounded-lg text-[var(--text-h)] outline-none transition-opacity hover:opacity-75 focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           to="/"
         >
-          <span className="grid size-10 place-items-center rounded-[0.7rem] bg-forest-950 text-sm font-bold text-white shadow-sm">R3</span>
-          <span className="hidden text-sm font-semibold leading-5 tracking-tight sm:block">R3foresta ·<br /><span className="text-forest-700">Reportes</span></span>
+          <img
+            alt="R3 Foresta"
+            className="h-14 w-auto mix-blend-multiply"
+            height="720"
+            src="/r3foresta-logo.jpg"
+            width="900"
+          />
+          <span className="hidden text-sm font-semibold leading-5 tracking-tight sm:block">
+            Portal de<br /><span className="text-forest-700">impacto</span>
+          </span>
         </Link>
         {organizationName ? (
           <>
