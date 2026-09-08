@@ -1,16 +1,22 @@
 import { lazy, Suspense } from 'react'
 
-import type { ImpactMapData } from '../../types/impact'
+import type { ImpactCampaignCard, ImpactEvidence, ImpactMapData } from '../../types/impact'
 
 const ImpactMap = lazy(async () => {
   const module = await import('./impact-map')
   return { default: module.ImpactMap }
 })
 
-export function LazyImpactMap({ map }: { map: ImpactMapData }) {
+type LazyImpactMapProps = {
+  campaigns?: Pick<ImpactCampaignCard, 'id' | 'name'>[]
+  evidence?: ImpactEvidence[]
+  map: ImpactMapData
+}
+
+export function LazyImpactMap({ campaigns, evidence, map }: LazyImpactMapProps) {
   return (
     <Suspense fallback={<MapLoadingState />}>
-      <ImpactMap map={map} />
+      <ImpactMap campaigns={campaigns} evidence={evidence} map={map} />
     </Suspense>
   )
 }

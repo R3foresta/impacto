@@ -62,7 +62,11 @@ function CampaignDetailContent({ organizationId, campaignId }: { organizationId:
 
         <SubcampaignList subcampaigns={detail.subcampaigns} />
         <div className="grid items-start gap-10 xl:grid-cols-[0.9fr_1.1fr]">
-          <LazyImpactMap map={detail.map} />
+          <LazyImpactMap
+            campaigns={[detail.campaign]}
+            evidence={detail.evidence}
+            map={detail.map}
+          />
           <PlantingRecordList records={detail.plantingRecords} />
         </div>
         <EvidenceList

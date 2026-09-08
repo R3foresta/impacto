@@ -28,10 +28,21 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import { formatCount, formatDate, formatHectares } from '../../lib/formatters'
-import type { ImpactArea, ImpactMapData, ImpactPlantingPoint } from '../../types/impact'
+import type {
+  ImpactArea,
+  ImpactCampaignCard,
+  ImpactEvidence,
+  ImpactMapData,
+  ImpactPlantingPoint,
+} from '../../types/impact'
+import { EvidenceViewer } from '../evidence/evidence-viewer'
 import { EmptyState } from '../feedback/empty-state'
 
-type ImpactMapProps = { map: ImpactMapData }
+type ImpactMapProps = {
+  campaigns?: Pick<ImpactCampaignCard, 'id' | 'name'>[]
+  evidence?: ImpactEvidence[]
+  map: ImpactMapData
+}
 
 type AreaProperties = {
   subcampaignId: number
@@ -56,6 +67,8 @@ const fallbackBounds: LngLatBoundsLike = [
   [-68.25, -16.65],
   [-67.95, -16.35],
 ]
+const emptyCampaigns: Pick<ImpactCampaignCard, 'id' | 'name'>[] = []
+const emptyEvidence: ImpactEvidence[] = []
 
 const areaFillLayer: FillLayerSpecification = {
   id: areaFillLayerId,
@@ -103,17 +116,34 @@ const pointLayer: CircleLayerSpecification = {
   },
 }
 
-export function ImpactMap({ map }: ImpactMapProps) {
+export function ImpactMap({
+  campaigns = emptyCampaigns,
+  evidence = emptyEvidence,
+  map,
+}: ImpactMapProps) {
   const hasMapData = map.areas.length > 0 || map.plantingPoints.length > 0
   const [selectedAreaId, setSelectedAreaId] = useState<number | null>(
     map.areas[0]?.subcampaignId ?? null,
   )
   const [selectedPointId, setSelectedPointId] = useState<number | null>(null)
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState<number | null>(null)
   const [cursor, setCursor] = useState<'grab' | 'pointer'>('grab')
   const mapRef = useRef<MapRef>(null)
 
   const selectedArea = map.areas.find((area) => area.subcampaignId === selectedAreaId) ?? null
   const selectedPoint = map.plantingPoints.find((point) => point.id === selectedPointId) ?? null
+  const evidenceByPlantingRecord = useMemo(() => {
+    const groupedEvidence = new Map<number, ImpactEvidence[]>()
+    for (const item of evidence) {
+      const recordEvidence = groupedEvidence.get(item.plantingRecordId) ?? []
+      recordEvidence.push(item)
+      groupedEvidence.set(item.plantingRecordId, recordEvidence)
+    }
+    return groupedEvidence
+  }, [evidence])
+  const selectedPointEvidence = selectedPoint
+    ? evidenceByPlantingRecord.get(selectedPoint.id) ?? emptyEvidence
+    : emptyEvidence
   const visiblePoints = selectedArea
     ? map.plantingPoints.filter((point) => point.subcampaignId === selectedArea.subcampaignId)
     : map.plantingPoints
@@ -172,6 +202,7 @@ export function ImpactMap({ map }: ImpactMapProps) {
   function handleAreaSelect(areaId: number | null) {
     setSelectedAreaId(areaId)
     setSelectedPointId(null)
+    setSelectedEvidenceId(null)
 
     if (areaId === null) {
       focusBounds(initialBounds)
@@ -190,6 +221,7 @@ export function ImpactMap({ map }: ImpactMapProps) {
     const feature = event.features?.[0]
     if (!feature) {
       setSelectedPointId(null)
+      setSelectedEvidenceId(null)
       return
     }
 
@@ -199,6 +231,7 @@ export function ImpactMap({ map }: ImpactMapProps) {
       if (!point) return
       setSelectedAreaId(point.subcampaignId)
       setSelectedPointId(point.id)
+      setSelectedEvidenceId(null)
       return
     }
 
@@ -300,7 +333,15 @@ export function ImpactMap({ map }: ImpactMapProps) {
                 <ScaleControl maxWidth={120} position="bottom-left" unit="metric" />
 
                 {selectedPoint ? (
-                  <PointPopup point={selectedPoint} onClose={() => setSelectedPointId(null)} />
+                  <PointPopup
+                    evidence={selectedPointEvidence}
+                    onClose={() => {
+                      setSelectedPointId(null)
+                      setSelectedEvidenceId(null)
+                    }}
+                    onEvidenceSelect={setSelectedEvidenceId}
+                    point={selectedPoint}
+                  />
                 ) : null}
               </MapCanvas>
 
@@ -321,11 +362,29 @@ export function ImpactMap({ map }: ImpactMapProps) {
           </div>
         </div>
       )}
+      <EvidenceViewer
+        campaigns={campaigns}
+        evidence={selectedPointEvidence}
+        onClose={() => setSelectedEvidenceId(null)}
+        onSelect={setSelectedEvidenceId}
+        plantingPoints={map.plantingPoints}
+        selectedEvidenceId={selectedEvidenceId}
+      />
     </section>
   )
 }
 
-function PointPopup({ point, onClose }: { point: ImpactPlantingPoint; onClose: () => void }) {
+function PointPopup({
+  evidence,
+  onClose,
+  onEvidenceSelect,
+  point,
+}: {
+  evidence: ImpactEvidence[]
+  onClose: () => void
+  onEvidenceSelect: (evidenceId: number) => void
+  point: ImpactPlantingPoint
+}) {
   return (
     <Popup
       anchor="bottom"
@@ -334,10 +393,11 @@ function PointPopup({ point, onClose }: { point: ImpactPlantingPoint; onClose: (
       closeOnClick={false}
       latitude={point.latitude}
       longitude={point.longitude}
+      maxWidth="22rem"
       offset={14}
       onClose={onClose}
     >
-      <div className="min-w-52 p-4 pr-8 text-sm">
+      <div className="w-72 max-w-[calc(100vw-4rem)] p-4 pr-8 text-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-forest-700">
           Registro de plantación
         </p>
@@ -350,9 +410,42 @@ function PointPopup({ point, onClose }: { point: ImpactPlantingPoint; onClose: (
             {point.withinArea ? 'Dentro del área' : 'Fuera del área'}
           </span>
           <span className="rounded-full bg-mist-100 px-2.5 py-1 font-medium text-[#526159]">
-            {formatCount(point.evidenceCount)} evidencias
+            {formatCount(point.evidenceCount)} {point.evidenceCount === 1 ? 'evidencia' : 'evidencias'}
           </span>
         </div>
+        {evidence.length > 0 ? (
+          <div className="mt-4 border-t border-[var(--border)] pt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
+              Evidencia fotográfica
+            </p>
+            <div className="flex gap-2">
+              {evidence.slice(0, 3).map((item) => (
+                <button
+                  aria-label={`Ampliar ${item.title ?? `evidencia ${item.id}`}`}
+                  className="group relative aspect-square min-w-0 flex-1 overflow-hidden rounded-lg bg-forest-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  key={item.id}
+                  onClick={() => onEvidenceSelect(item.id)}
+                  type="button"
+                >
+                  <img
+                    alt={item.title ?? `Evidencia ${item.id}`}
+                    className="size-full object-cover transition duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    src={item.imageUrl}
+                  />
+                  <span className="absolute inset-x-0 bottom-0 bg-black/62 px-1.5 py-1 text-center text-[0.65rem] font-semibold text-white">
+                    Ver detalle
+                  </span>
+                </button>
+              ))}
+            </div>
+            {point.evidenceCount > evidence.length ? (
+              <p className="mt-2 text-xs leading-5 text-[var(--text)]">
+                Mostrando {formatCount(evidence.length)} de {formatCount(point.evidenceCount)} archivos disponibles en esta vista.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <a
           className="mt-4 inline-flex items-center gap-2 font-semibold text-forest-800 hover:text-forest-950"
           href={getOpenStreetMapUrl(point.latitude, point.longitude)}

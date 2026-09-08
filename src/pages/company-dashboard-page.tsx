@@ -11,6 +11,7 @@ import { ErrorState } from '../components/feedback/error-state'
 import { LoadingState } from '../components/feedback/loading-state'
 import { PortalHeader } from '../components/layout/portal-header'
 import { LazyImpactMap } from '../components/map/lazy-impact-map'
+import type { ImpactDashboard, ImpactEvidence } from '../types/impact'
 
 export function CompanyDashboardPage() {
   const { organizationId } = useParams()
@@ -46,7 +47,12 @@ function OrganizationDashboardContent({ organizationId }: { organizationId: stri
         />
         <CampaignList campaigns={dashboard.campaigns} organizationId={dashboard.organization.id} />
 
-        <LazyImpactMap key={dashboard.organization.id} map={dashboard.map} />
+        <LazyImpactMap
+          campaigns={dashboard.campaigns}
+          evidence={collectMapEvidence(dashboard)}
+          key={dashboard.organization.id}
+          map={dashboard.map}
+        />
         <EvidenceList
           campaigns={dashboard.campaigns}
           evidence={dashboard.evidencePreview}
@@ -56,6 +62,15 @@ function OrganizationDashboardContent({ organizationId }: { organizationId: stri
       </main>
     </div>
   )
+}
+
+function collectMapEvidence(dashboard: ImpactDashboard): ImpactEvidence[] {
+  const evidenceById = new Map<number, ImpactEvidence>()
+  for (const item of dashboard.evidencePreview) evidenceById.set(item.id, item)
+  for (const campaign of dashboard.campaigns) {
+    for (const item of campaign.evidencePreview) evidenceById.set(item.id, item)
+  }
+  return [...evidenceById.values()]
 }
 
 type DashboardFeedbackProps = {

@@ -1,7 +1,9 @@
-import { ArrowUpRight, Camera, MapPin } from 'lucide-react'
+import { useState } from 'react'
+import { Camera, Expand, MapPin } from 'lucide-react'
 
 import { formatCount, formatDate } from '../../lib/formatters'
 import type { ImpactCampaignCard, ImpactEvidence, ImpactPlantingPoint } from '../../types/impact'
+import { EvidenceViewer } from '../evidence/evidence-viewer'
 import { EmptyState } from '../feedback/empty-state'
 import { Badge } from '../ui/badge'
 
@@ -18,6 +20,7 @@ export function EvidenceList({
   plantingPoints = [],
   totalCount = evidence.length,
 }: EvidenceListProps) {
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState<number | null>(null)
   const pointByPlantingRecord = new Map(plantingPoints.map((point) => [point.id, point]))
   const campaignNameById = new Map(campaigns.map((campaign) => [campaign.id, campaign.name]))
 
@@ -58,11 +61,11 @@ export function EvidenceList({
                   className="overflow-hidden rounded-[1.5rem] border border-[var(--border)] bg-white shadow-[0_16px_45px_rgba(23,47,35,0.06)]"
                   key={item.id}
                 >
-                  <a
-                    className="group relative isolate block aspect-[4/3] overflow-hidden bg-forest-950 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
-                    href={item.imageUrl}
-                    rel="noreferrer"
-                    target="_blank"
+                  <button
+                    aria-label={`Ver detalle de ${item.title ?? `evidencia ${item.id}`}`}
+                    className="group relative isolate block aspect-[4/3] w-full overflow-hidden bg-forest-950 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+                    onClick={() => setSelectedEvidenceId(item.id)}
+                    type="button"
                   >
                     <img
                       alt={item.title ?? `Evidencia de plantación ${item.plantingRecordId}`}
@@ -76,8 +79,9 @@ export function EvidenceList({
                         <span className="rounded-lg border border-white/16 bg-black/30 px-2.5 py-1.5 font-mono text-xs backdrop-blur-md">
                           Evidencia · {item.id}
                         </span>
-                        <span className="grid size-9 place-items-center rounded-full bg-white text-forest-950 shadow-sm">
-                          <ArrowUpRight aria-hidden="true" className="size-4" />
+                        <span className="inline-flex min-h-9 items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-forest-950 shadow-sm">
+                          <Expand aria-hidden="true" className="size-4" />
+                          Ver detalle
                         </span>
                       </span>
                       {point ? (
@@ -87,7 +91,7 @@ export function EvidenceList({
                         </span>
                       ) : null}
                     </span>
-                  </a>
+                  </button>
 
                   <div className="p-5">
                     <h3 className="line-clamp-2 min-h-12 text-base font-semibold leading-6 text-[var(--text-h)]">
@@ -121,6 +125,14 @@ export function EvidenceList({
               <Camera aria-hidden="true" className="size-3.5" /> Archivo publicado disponible en cada tarjeta
             </p>
           </div>
+          <EvidenceViewer
+            campaigns={campaigns}
+            evidence={evidence}
+            onClose={() => setSelectedEvidenceId(null)}
+            onSelect={setSelectedEvidenceId}
+            plantingPoints={plantingPoints}
+            selectedEvidenceId={selectedEvidenceId}
+          />
         </>
       )}
     </section>
