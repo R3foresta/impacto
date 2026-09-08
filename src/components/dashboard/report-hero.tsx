@@ -24,14 +24,7 @@ export function ReportHero({ dashboard }: ReportHeroProps) {
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(2,24,17,0.08)_0%,rgba(2,24,17,0.02)_62%,rgba(2,24,17,0.58)_100%)]" />
 
       <div className="mx-auto flex w-full max-w-[96rem] flex-1 flex-col px-5 pb-10 pt-8 sm:px-8 sm:pb-12 lg:px-12 lg:pb-16 lg:pt-10">
-        <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-medium uppercase tracking-[0.16em] text-white/72 sm:text-sm">
-          <div className="flex flex-wrap items-center gap-4">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/9 px-3 py-2 backdrop-blur-md">
-              <span className="size-2 rounded-full bg-[#73d8a2] shadow-[0_0_0_5px_rgba(115,216,162,0.12)]" />
-              Datos publicados
-            </span>
-            <span className="hidden font-mono text-[0.72rem] tracking-[0.14em] sm:inline">Impacto · Asociación por campañas</span>
-          </div>
+        <div className="flex w-full flex-wrap items-center justify-end gap-4 text-xs font-medium uppercase tracking-[0.16em] text-white/72 sm:text-sm">
           <span className="font-mono text-[0.72rem] tracking-[0.14em]">Corte · {formatDate(generatedAt)}</span>
         </div>
 
@@ -79,6 +72,7 @@ export function ReportHero({ dashboard }: ReportHeroProps) {
             <span><strong className="mr-2 font-mono text-white/40">01</strong>{attribution.label}</span>
             <span><strong className="mr-2 font-mono text-white/40">02</strong>{formatCount(summary.evidenceCount)} evidencias publicadas</span>
             <span><strong className="mr-2 font-mono text-white/40">03</strong>{formatCount(summary.plantingRecordsCount)} registros de plantación</span>
+            <span><strong className="mr-2 font-mono text-white/40">04</strong>Corte · {formatDate(generatedAt)}</span>
           </div>
           <span className="inline-flex items-center gap-2 font-mono"><CalendarDays aria-hidden="true" className="size-3.5" /> Última actividad · {formatDate(summary.lastActivityAt)}</span>
         </div>
