@@ -29,6 +29,7 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
       aria-labelledby="impact-overview-title"
       className="rounded-[1.5rem] border border-white/12 bg-[#174c35]/62 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:p-6"
     >
+      {/* Modificar la parte de el borde inferior */}
       <div className="flex items-center gap-4 border-b border-white/10 pb-5">
         <OrganizationMark
           className="size-20 rounded-xl"
@@ -44,7 +45,8 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
         </div>
       </div>
 
-      <h2
+      {/* eliminar esto o modificar la forma en la que se ve */}
+      {/* <h2
         className="mt-5 text-xs font-semibold uppercase tracking-[0.19em] text-[#acd0b7]"
         id="impact-overview-title"
       >
@@ -56,7 +58,7 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
         <ReportFact className="border-b border-white/10" label="Subcampañas" value={formatCount(summary.subcampaignsCount)} />
         <ReportFact className="border-r border-white/10" label="Ubicaciones" value={formatCount(summary.locationsCount)} />
         <ReportFact label="Superficie" value={formatHectares(summary.hectares)} />
-      </dl>
+      </dl> */}
 
       <section aria-labelledby="planting-progress-title" className="mt-5 border-t border-white/10 pt-5">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-4 lg:flex-col lg:items-start xl:flex-row xl:items-end">
