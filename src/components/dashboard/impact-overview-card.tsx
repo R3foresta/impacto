@@ -1,9 +1,8 @@
 import { ArrowRight, CircleCheck, Images, MapPinned } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { formatCount, formatDate, formatHectares, formatPercentage } from '../../lib/formatters'
+import { formatCount, formatHectares, formatPercentage } from '../../lib/formatters'
 import type { ImpactDashboard, ImpactMapData } from '../../types/impact'
-import { OrganizationMark } from '../company/organization-mark'
 
 type ImpactOverviewCardProps = {
   dashboard: ImpactDashboard
@@ -14,7 +13,7 @@ const previewHeight = 120
 const previewPadding = 12
 
 export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
-  const { evidencePreview, generatedAt, map, organization, summary } = dashboard
+  const { evidencePreview, map, summary } = dashboard
   const hasGoal = summary.treesTarget > 0
   const progress = hasGoal && summary.progressPct !== null
     ? Math.max(0, Math.min(100, summary.progressPct))
@@ -26,41 +25,10 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
 
   return (
     <aside
-      aria-labelledby="impact-overview-title"
+      aria-label="Resumen de impacto"
       className="rounded-[1.5rem] border border-white/12 bg-[#174c35]/62 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:p-6"
     >
-      {/* Modificar la parte de el borde inferior */}
-      <div className="flex items-center gap-4 border-b border-white/10 pb-5">
-        <OrganizationMark
-          className="size-20 rounded-xl"
-          organization={organization}
-        />
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.19em] text-[#acd0b7]">
-            Organización
-          </p>
-          <p className="mt-1.5 text-lg font-semibold leading-tight tracking-[-0.025em] text-white sm:text-xl">
-            {organization.name}
-          </p>
-        </div>
-      </div>
-
-      {/* eliminar esto o modificar la forma en la que se ve */}
-      {/* <h2
-        className="mt-5 text-xs font-semibold uppercase tracking-[0.19em] text-[#acd0b7]"
-        id="impact-overview-title"
-      >
-        Resumen de impacto
-      </h2>
-      <dl className="mt-3 grid grid-cols-2 overflow-hidden rounded-xl border border-white/10 bg-[#0b3a29]/24">
-        <ReportFact className="col-span-2 border-b border-white/10" horizontal label="Corte de datos" value={formatDate(generatedAt)} />
-        <ReportFact className="border-b border-r border-white/10" label="Campañas" value={formatCount(summary.campaignsCount)} />
-        <ReportFact className="border-b border-white/10" label="Subcampañas" value={formatCount(summary.subcampaignsCount)} />
-        <ReportFact className="border-r border-white/10" label="Ubicaciones" value={formatCount(summary.locationsCount)} />
-        <ReportFact label="Superficie" value={formatHectares(summary.hectares)} />
-      </dl> */}
-
-      <section aria-labelledby="planting-progress-title" className="mt-5 border-t border-white/10 pt-5">
+      <section aria-labelledby="planting-progress-title">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-4 lg:flex-col lg:items-start xl:flex-row xl:items-end">
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.19em] text-[#acd0b7]" id="planting-progress-title">
@@ -107,7 +75,7 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
             {hasMapData ? (
               <a
                 className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                href="#mapa"
+                href="#map-title"
               >
                 Ver mapa completo <ArrowRight aria-hidden="true" className="size-4" />
               </a>
@@ -139,7 +107,7 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
             </div>
             <a
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:w-auto lg:w-full xl:w-auto"
-              href="#evidencia"
+              href="#evidence-title"
             >
               Ver todas <ArrowRight aria-hidden="true" className="size-4" />
             </a>
@@ -160,39 +128,19 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
   )
 }
 
-function ReportFact({
-  className = '',
-  horizontal = false,
-  label,
-  value,
-}: {
-  className?: string
-  horizontal?: boolean
-  label: string
-  value: string
-}) {
-  return (
-    <div
-      className={`${horizontal ? 'flex items-center justify-between gap-4' : 'min-w-0'} px-4 py-3 ${className}`}
-    >
-      <dt className="text-xs leading-5 text-white/55">{label}</dt>
-      <dd className={`${horizontal ? 'text-right text-sm' : 'mt-1 text-lg'} truncate font-semibold text-white`} title={value}>
-        {value}
-      </dd>
-    </div>
-  )
-}
-
 function TerritoryPreview({ hasMapData, map }: { hasMapData: boolean; map: ImpactMapData }) {
   const geometry = useMemo(() => createTerritoryGeometry(map), [map])
 
   return (
-    <div className="relative h-28 overflow-hidden rounded-xl border border-white/12 bg-[radial-gradient(circle_at_75%_22%,rgba(118,183,139,0.32),transparent_31%),linear-gradient(145deg,#0b3023,#174f38)]">
+    <div
+      className="relative h-28 overflow-hidden rounded-xl border border-white/12 bg-cover bg-center"
+      style={{
+        backgroundImage: "linear-gradient(145deg, rgba(4, 35, 24, 0.42), rgba(5, 45, 30, 0.2)), url('/territory-forest-aerial.jpg')",
+      }}
+    >
       <svg aria-hidden="true" className="absolute inset-0 size-full" preserveAspectRatio="xMidYMid meet" viewBox={`0 0 ${previewWidth} ${previewHeight}`}>
-        <path d="M-20 92 C48 42 84 118 150 66 S252 24 350 72" fill="none" opacity="0.16" stroke="#d6f0de" strokeWidth="1.5" />
-        <path d="M-15 35 C50 82 116 4 182 45 S276 105 344 38" fill="none" opacity="0.12" stroke="#d6f0de" strokeWidth="1" />
         {geometry.areaPaths.map((path, index) => (
-          <path d={path} fill="rgba(140,224,173,0.22)" fillRule="evenodd" key={`${path.slice(0, 20)}-${index}`} stroke="#8ce0ad" strokeWidth="2" />
+          <path d={path} fill="rgba(140,224,173,0.18)" fillRule="evenodd" key={`${path.slice(0, 20)}-${index}`} stroke="#b2f0c7" strokeWidth="2.4" />
         ))}
         {geometry.points.map((point, index) => (
           <g key={`${point.x}-${point.y}-${index}`}>
