@@ -65,7 +65,12 @@ function CampaignDetailContent({ organizationId, campaignId }: { organizationId:
           <ImpactMap map={detail.map} />
           <PlantingRecordList records={detail.plantingRecords} />
         </div>
-        <EvidenceList evidence={detail.evidence} />
+        <EvidenceList
+          campaigns={[detail.campaign]}
+          evidence={detail.evidence}
+          plantingPoints={detail.map.plantingPoints}
+          totalCount={detail.evidence.length}
+        />
       </main>
     </div>
   )

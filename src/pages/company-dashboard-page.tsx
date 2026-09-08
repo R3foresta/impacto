@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft } from 'lucide-react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 
 import { getImpactOrganizationDashboard } from '../api/impact'
 import { EvidenceList } from '../components/dashboard/evidence-list'
 import { ImpactSummary } from '../components/dashboard/impact-summary'
+import { ReportHero } from '../components/dashboard/report-hero'
+import { RestorationPerformance } from '../components/dashboard/restoration-performance'
 import { CampaignList } from '../components/dashboard/project-list'
 import { ErrorState } from '../components/feedback/error-state'
 import { LoadingState } from '../components/feedback/loading-state'
@@ -34,20 +35,24 @@ function OrganizationDashboardContent({ organizationId }: { organizationId: stri
 
   return (
     <div className="min-h-screen bg-mist-50">
-      <PortalHeader organizationName={dashboard.organization.name} />
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-5 py-8 sm:px-8 sm:py-10">
-        <Link className="inline-flex w-fit items-center gap-2 rounded-md text-sm font-medium text-forest-800 outline-none hover:text-forest-950 focus-visible:ring-2 focus-visible:ring-[var(--accent)]" to="/">
-          <ArrowLeft aria-hidden="true" className="size-4" />
-          Cambiar organización
-        </Link>
-
+      <PortalHeader organizationName={dashboard.organization.name} reportNavigation />
+      <ReportHero dashboard={dashboard} />
+      <main className="mx-auto flex w-full max-w-[96rem] flex-col gap-16 px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
         <ImpactSummary attributionNote={dashboard.attribution.note} summary={dashboard.summary} />
+        <RestorationPerformance
+          campaigns={dashboard.campaigns}
+          organizationId={dashboard.organization.id}
+          summary={dashboard.summary}
+        />
         <CampaignList campaigns={dashboard.campaigns} organizationId={dashboard.organization.id} />
 
-        <div className="grid items-start gap-10 xl:grid-cols-[0.9fr_1.1fr]">
-          <ImpactMap map={dashboard.map} />
-          <EvidenceList evidence={dashboard.evidencePreview} />
-        </div>
+        <ImpactMap key={dashboard.organization.id} map={dashboard.map} />
+        <EvidenceList
+          campaigns={dashboard.campaigns}
+          evidence={dashboard.evidencePreview}
+          plantingPoints={dashboard.map.plantingPoints}
+          totalCount={dashboard.summary.evidenceCount}
+        />
       </main>
     </div>
   )
