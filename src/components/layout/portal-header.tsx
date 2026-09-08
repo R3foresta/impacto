@@ -1,12 +1,19 @@
 import { ArrowLeft, Grid2X2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { OrganizationMark } from '../company/organization-mark'
+
 type PortalHeaderProps = {
   organizationName?: string
+  organizationLogo?: string | null
   reportNavigation?: boolean
 }
 
-export function PortalHeader({ organizationName, reportNavigation = false }: PortalHeaderProps) {
+export function PortalHeader({
+  organizationLogo,
+  organizationName,
+  reportNavigation = false,
+}: PortalHeaderProps) {
   return (
     <header className="sticky top-0 z-50 border-b border-[#dfe5de] bg-[#f7f9f5]/95 backdrop-blur-xl">
       <div className="mx-auto flex min-h-[5.25rem] w-full max-w-[96rem] items-center gap-6 px-5 sm:px-8 lg:px-12">
@@ -29,9 +36,15 @@ export function PortalHeader({ organizationName, reportNavigation = false }: Por
         {organizationName ? (
           <>
             <span aria-hidden="true" className="hidden h-9 w-px bg-[#d7ddd6] lg:block" />
-            <p className="hidden max-w-56 text-sm leading-5 text-[var(--text)] lg:block">
-              Cliente · <strong className="font-semibold text-[var(--text-h)]">{organizationName}</strong>
-            </p>
+            <div className="hidden min-w-0 items-center gap-3 lg:flex">
+              <OrganizationMark
+                className="size-11 rounded-xl p-1.5"
+                organization={{ logo: organizationLogo ?? null, name: organizationName }}
+              />
+              <p className="max-w-44 text-sm leading-5 text-[var(--text)]">
+                Organización · <strong className="font-semibold text-[var(--text-h)]">{organizationName}</strong>
+              </p>
+            </div>
             {reportNavigation ? (
               <nav aria-label="Secciones del reporte" className="ml-auto hidden items-center gap-1 xl:flex">
                 {[

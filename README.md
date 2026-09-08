@@ -16,7 +16,8 @@ npm install
 npm run dev
 ```
 
-Define `VITE_API_URL` en `.env.local` para conectar el backend. Sin esa variable, el portal usa el mismo origen.
+En desarrollo, Vite redirige `/api` al backend NestJS en `http://localhost:3000`.
+Define `VITE_API_URL` en `.env.local` únicamente si necesitas usar otro origen.
 
 ```bash
 npm run check

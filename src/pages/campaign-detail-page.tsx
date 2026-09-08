@@ -44,7 +44,10 @@ function CampaignDetailContent({ organizationId, campaignId }: { organizationId:
 
   return (
     <div className="min-h-screen bg-mist-50">
-      <PortalHeader organizationName={detail.organization.name} />
+      <PortalHeader
+        organizationLogo={detail.organization.logo}
+        organizationName={detail.organization.name}
+      />
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-5 py-8 sm:px-8 sm:py-10">
         <Link className="inline-flex w-fit items-center gap-2 rounded-md text-sm font-medium text-forest-800 hover:text-forest-950 focus-visible:ring-2 focus-visible:ring-[var(--accent)]" to={`/organizations/${organizationId}`}>
           <ArrowLeft aria-hidden="true" className="size-4" /> Volver al dashboard

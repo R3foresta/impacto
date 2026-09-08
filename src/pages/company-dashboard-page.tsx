@@ -36,7 +36,11 @@ function OrganizationDashboardContent({ organizationId }: { organizationId: stri
 
   return (
     <div className="min-h-screen bg-mist-50">
-      <PortalHeader organizationName={dashboard.organization.name} reportNavigation />
+      <PortalHeader
+        organizationLogo={dashboard.organization.logo}
+        organizationName={dashboard.organization.name}
+        reportNavigation
+      />
       <ReportHero dashboard={dashboard} />
       <main className="mx-auto flex w-full max-w-[96rem] flex-col gap-16 px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
         <ImpactSummary attributionNote={dashboard.attribution.note} summary={dashboard.summary} />
