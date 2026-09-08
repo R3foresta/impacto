@@ -1,8 +1,8 @@
-import { ArrowDown, ArrowRight, CalendarDays, CircleCheck, MapPinned } from 'lucide-react'
+import { ArrowDown, ArrowRight, CalendarDays, MapPinned } from 'lucide-react'
 
-import { formatCount, formatDate, formatHectares } from '../../lib/formatters'
+import { formatCount, formatDate } from '../../lib/formatters'
 import type { ImpactDashboard } from '../../types/impact'
-import { OrganizationMark } from '../company/organization-mark'
+import { ImpactOverviewCard } from './impact-overview-card'
 
 type ReportHeroProps = {
   dashboard: ImpactDashboard
@@ -35,7 +35,7 @@ export function ReportHero({ dashboard }: ReportHeroProps) {
           <span className="font-mono text-[0.72rem] tracking-[0.14em]">Corte · {formatDate(generatedAt)}</span>
         </div>
 
-        <div className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-16 lg:py-16 xl:grid-cols-[minmax(0,1fr)_25rem]">
+        <div className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-16 lg:py-16 xl:grid-cols-[minmax(0,1fr)_30rem]">
           <div className="max-w-5xl">
             <p className="text-xs font-semibold uppercase tracking-[0.23em] text-[#9fcbb0] sm:text-sm">Reporte ejecutivo de impacto ambiental</p>
             <h1 className="mt-7 max-w-[16ch] text-[clamp(3rem,6.2vw,6.8rem)] font-semibold leading-[0.92] tracking-[-0.055em] text-white" id="report-title">
@@ -69,34 +69,7 @@ export function ReportHero({ dashboard }: ReportHeroProps) {
             </div>
           </div>
 
-          <aside className="rounded-[1.5rem] border border-white/12 bg-[#174c35]/62 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:p-6" aria-label="Identificación del reporte">
-            <div className="flex items-center gap-4 border-b border-white/10 pb-5">
-              <OrganizationMark
-                className="size-20 rounded-xl"
-                organization={organization}
-              />
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.19em] text-[#acd0b7]">
-                  Organización
-                </p>
-                <p className="mt-1.5 text-lg font-semibold leading-tight tracking-[-0.025em] text-white sm:text-xl">
-                  {organization.name}
-                </p>
-              </div>
-            </div>
-            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.19em] text-[#acd0b7]">Datos del reporte</p>
-            <dl className="mt-3 grid grid-cols-2 overflow-hidden rounded-xl border border-white/10 bg-[#0b3a29]/24">
-              <ReportFact className="col-span-2 border-b border-white/10" horizontal label="Corte de datos" value={formatDate(generatedAt)} />
-              <ReportFact className="border-b border-r border-white/10" label="Campañas" value={formatCount(summary.campaignsCount)} />
-              <ReportFact className="border-b border-white/10" label="Subcampañas" value={formatCount(summary.subcampaignsCount)} />
-              <ReportFact className="border-r border-white/10" label="Ubicaciones" value={formatCount(summary.locationsCount)} />
-              <ReportFact label="Superficie" value={formatHectares(summary.hectares)} />
-            </dl>
-            <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-white/68">
-              <CircleCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[#73d8a2]" />
-              Información publicada por la fuente de trazabilidad de R3Foresta.
-            </p>
-          </aside>
+          <ImpactOverviewCard dashboard={dashboard} />
         </div>
       </div>
 
@@ -111,28 +84,5 @@ export function ReportHero({ dashboard }: ReportHeroProps) {
         </div>
       </div>
     </section>
-  )
-}
-
-function ReportFact({
-  className = '',
-  horizontal = false,
-  label,
-  value,
-}: {
-  className?: string
-  horizontal?: boolean
-  label: string
-  value: string
-}) {
-  return (
-    <div
-      className={`${horizontal ? 'flex items-center justify-between gap-4' : 'min-w-0'} px-4 py-3 ${className}`}
-    >
-      <dt className="text-xs leading-5 text-white/55">{label}</dt>
-      <dd className={`${horizontal ? 'text-right text-sm' : 'mt-1 text-lg'} truncate font-semibold text-white`} title={value}>
-        {value}
-      </dd>
-    </div>
   )
 }
