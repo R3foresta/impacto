@@ -8,7 +8,7 @@ import { MetricCard } from '../components/dashboard/metric-card'
 import { ErrorState } from '../components/feedback/error-state'
 import { LoadingState } from '../components/feedback/loading-state'
 import { PortalHeader } from '../components/layout/portal-header'
-import { ImpactMap } from '../components/map/impact-map'
+import { LazyImpactMap } from '../components/map/lazy-impact-map'
 import { Badge } from '../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { formatCode, formatCount, formatDate, formatHectares, formatPercentage } from '../lib/formatters'
@@ -62,7 +62,7 @@ function CampaignDetailContent({ organizationId, campaignId }: { organizationId:
 
         <SubcampaignList subcampaigns={detail.subcampaigns} />
         <div className="grid items-start gap-10 xl:grid-cols-[0.9fr_1.1fr]">
-          <ImpactMap map={detail.map} />
+          <LazyImpactMap map={detail.map} />
           <PlantingRecordList records={detail.plantingRecords} />
         </div>
         <EvidenceList

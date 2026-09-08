@@ -10,7 +10,7 @@ import { CampaignList } from '../components/dashboard/project-list'
 import { ErrorState } from '../components/feedback/error-state'
 import { LoadingState } from '../components/feedback/loading-state'
 import { PortalHeader } from '../components/layout/portal-header'
-import { ImpactMap } from '../components/map/impact-map'
+import { LazyImpactMap } from '../components/map/lazy-impact-map'
 
 export function CompanyDashboardPage() {
   const { organizationId } = useParams()
@@ -46,7 +46,7 @@ function OrganizationDashboardContent({ organizationId }: { organizationId: stri
         />
         <CampaignList campaigns={dashboard.campaigns} organizationId={dashboard.organization.id} />
 
-        <ImpactMap key={dashboard.organization.id} map={dashboard.map} />
+        <LazyImpactMap key={dashboard.organization.id} map={dashboard.map} />
         <EvidenceList
           campaigns={dashboard.campaigns}
           evidence={dashboard.evidencePreview}
