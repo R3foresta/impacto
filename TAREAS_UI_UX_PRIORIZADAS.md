@@ -1,6 +1,8 @@
 # Tareas prioritarias de UI y UX — R3Foresta Impacto
 
-Estado: preparadas, pendientes de activación. Ninguna implementación autorizada en esta ronda.
+Estado: las cuatro tareas están implementadas, revisadas e integradas localmente en el proyecto principal. El usuario autorizó su revisión y corrección. Sin commit ni despliegue.
+
+Resultado y pruebas: [REVISION_UI_UX.md](REVISION_UI_UX.md).
 
 ## Fuentes aceptadas
 
@@ -23,11 +25,11 @@ Las rutas indicadas son puntos de entrada procedentes del inventario de los aná
 
 ## Regla de activación
 
-Los encargos que siguen describen trabajo futuro. Los agentes deben permanecer en espera hasta una instrucción posterior explícita del usuario. No iniciar ahora lectura de código, nueva investigación, cambios, pruebas, commits, PR ni despliegues.
+Los encargos se crearon inicialmente en espera. Posteriormente el usuario los activó en las tareas separadas y pidió revisar y corregir las entregas. El alcance y los criterios siguientes conservan la especificación original; su estado actual está indicado en cada tarea y en el informe de revisión.
 
-Al activar, trabajar sobre la versión vigente del proyecto y respetar los cambios previos del usuario. En esta sesión ya existía una modificación local en `src/components/dashboard/report-hero.tsx`; no debe descartarse ni sustituirse por una versión antigua. El worktree creado para registrar una tarea no establece por sí solo la base definitiva de implementación. T02 requiere además el resultado integrado de T01.
+La integración local partió de `8a70bb8`, base compartida por el proyecto y los cuatro worktrees. El ajuste previo de `src/components/dashboard/report-hero.tsx` está conservado. T02 ya contenía T01 y se utilizó como entrega conjunta; T03 y T04 se incorporaron sobre ella. Los worktrees originales permanecen intactos.
 
-La lectura técnica mínima para implementar y la validación dirigida posterior sí formarán parte de cada encargo cuando se active. Las conclusiones de UI/UX ya están establecidas; no volver a auditar todo el producto.
+Se realizó la lectura técnica y la validación dirigida de las entregas. Las conclusiones de UI/UX ya están establecidas; no volver a auditar todo el producto.
 
 ## Fuera de este primer lote
 
@@ -35,7 +37,7 @@ Evolución temporal e histórico de monitoreo, nuevos filtros de seguimiento, me
 
 ## T01 — Precisar indicadores y estado del CO₂
 
-- Estado: pendiente de activación.
+- Estado: implementada, revisada e integrada localmente; ver el informe de revisión.
 - Prioridad: P1.
 - Responsable: Agente de contenido e indicadores.
 - Dependencias: Sin dependencia. Completar antes de T02.
@@ -67,7 +69,7 @@ Evolución temporal e histórico de monitoreo, nuevos filtros de seguimiento, me
 
 ## T02 — Adaptar el hero a pantallas bajas
 
-- Estado: pendiente de activación.
+- Estado: implementada, revisada e integrada localmente; ver el informe de revisión.
 - Prioridad: P1.
 - Responsable: Agente de composición responsive.
 - Dependencias: Después de T01, con su contenido ya integrado.
@@ -98,7 +100,7 @@ Evolución temporal e histórico de monitoreo, nuevos filtros de seguimiento, me
 
 ## T03 — Mantener accesible la navegación de secciones
 
-- Estado: pendiente de activación.
+- Estado: implementada, revisada e integrada localmente; ver el informe de revisión.
 - Prioridad: P1.
 - Responsable: Agente de navegación y accesibilidad.
 - Dependencias: Independiente de T01 y T04. Coordinar cualquier cambio excepcional en CSS global con T02.
@@ -129,7 +131,7 @@ Evolución temporal e histórico de monitoreo, nuevos filtros de seguimiento, me
 
 ## T04 — Destacar registros fuera del polígono
 
-- Estado: pendiente de activación.
+- Estado: implementada, revisada e integrada localmente; ver el informe de revisión.
 - Prioridad: P1.
 - Responsable: Agente de territorio y mapa.
 - Dependencias: Independiente de T01, T02 y T03, limitada al módulo territorial.
@@ -160,14 +162,11 @@ Evolución temporal e histórico de monitoreo, nuevos filtros de seguimiento, me
 
 ## Registro de tareas en Codex
 
-La aplicación aceptó las cuatro solicitudes de creación. En la última consulta todavía estaba preparando sus worktrees y no había devuelto IDs definitivos. No se enviaron instrucciones de implementación ni de continuación automática. Cada encargo exige confirmar su recepción y permanecer en espera.
-
-| Encargo | Título solicitado | Estado al preparar el lote | Identificador de creación |
+| Encargo | ID definitivo | Worktree de origen | Estado actual |
 |---|---|---|---|
-| T01 | Pendiente 01 · Precisar indicadores y estado del CO₂ | Creación en cola; pendiente de activación | `client-new-thread:025e2f8b-25a9-4f0f-b636-e9aaf57ed5ca` |
-| T02 | Pendiente 02 · Adaptar el hero a pantallas bajas | Creación en cola; pendiente de activación | `client-new-thread:9e0220e7-e505-4bea-b2ff-f5d752535e1f` |
-| T03 | Pendiente 03 · Mantener accesible la navegación de secciones | Creación en cola; pendiente de activación | `client-new-thread:ce7b29f8-17c2-4ea0-914f-b5eb5d2a0b0b` |
-| T04 | Pendiente 04 · Destacar registros fuera del polígono | Creación en cola; pendiente de activación | `client-new-thread:91063117-08eb-4dc2-a6a6-1215a7102ba1` |
+| T01 | `01a08209-fbed-7030-9d67-eab8b8512507` | `1d80` | Revisada e integrada mediante T02 |
+| T02 | `01a0820a-0f79-79d2-a2e2-0c1e7f607158` | `3439` | Revisada e integrada |
+| T03 | `01a0820a-22c1-78d1-bd9c-75f7f4a32e11` | `08f1` | Revisada e integrada; corregidos enlaces directos |
+| T04 | `01a0820a-37f7-7d72-955a-73d45ccc7a31` | `f829` | Revisada e integrada |
 
-Los identificadores de creación no son IDs definitivos de tareas. No deben usarse con herramientas que requieran un threadId. Las tarjetas adjuntas en la conversación permiten seguir la creación.
-
+Se corrigió además la presentación de fechas de calendario en el formateador compartido. Las casillas de la especificación original se conservan como referencia; la evidencia y las limitaciones de validación están en el informe de revisión.

@@ -19,9 +19,9 @@ export function ImpactSummary({ summary, attributionNote }: ImpactSummaryProps) 
   const metrics: Metric[] = [
     { label: 'Meta de árboles', value: formatCount(summary.treesTarget), detail: `${formatCount(summary.campaignsCount)} campañas asociadas`, tag: 'Meta' },
     { label: 'Plantación inicial', value: formatCount(summary.treesPlantedInitial), detail: `${formatCount(summary.plantingRecordsCount)} registros operativos`, tag: 'Total' },
-    { label: 'Árboles vivos reportados', value: formatCount(summary.treesAliveReported), detail: `${formatCount(summary.treesReplanted)} reposiciones registradas` },
-    { label: 'Supervivencia', value: formatPercentage(summary.survivalPct), detail: 'Según los últimos registros publicados', tag: 'Actual' },
-    { label: 'Avance de la meta', value: formatPercentage(summary.progressPct), detail: 'Plantación inicial respecto de la meta' },
+    { label: 'Árboles reportados vivos', value: formatCount(summary.treesAliveReported), detail: `${formatCount(summary.treesReplanted)} reposiciones registradas` },
+    { label: 'Supervivencia reportada', value: formatPercentage(summary.survivalPct), detail: 'Según los últimos registros publicados; fecha de observación no disponible', tag: 'Reportada' },
+    { label: 'Avance de la meta', value: formatPercentage(summary.progressPct), detail: 'Porcentaje calculado: plantación inicial respecto de la meta' },
     { label: 'Hectáreas intervenidas', value: formatHectares(summary.hectares), detail: `${formatCount(summary.locationsCount)} ubicaciones con actividad` },
     { label: 'Subcampañas', value: formatCount(summary.subcampaignsCount), detail: 'Ejecución territorial asociada' },
     { label: 'Evidencias publicadas', value: formatCount(summary.evidenceCount), detail: 'Respaldo fotográfico disponible' },
@@ -37,7 +37,7 @@ export function ImpactSummary({ summary, attributionNote }: ImpactSummaryProps) 
           </h2>
         </div>
         <p className="max-w-3xl text-base leading-7 text-[var(--text)] sm:text-lg sm:leading-8">
-          Los indicadores se calculan a partir de metas, registros de plantación, monitoreo de supervivencia y evidencia pública. Cada cifra mantiene el contexto de la campaña que la originó.
+          Los indicadores se calculan a partir de metas, registros de plantación, árboles reportados vivos y evidencia pública. Cada cifra mantiene el contexto de la campaña que la originó.
         </p>
       </div>
 

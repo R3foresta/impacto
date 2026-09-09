@@ -26,7 +26,7 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
   return (
     <aside
       aria-label="Resumen de impacto"
-      className="rounded-[1.5rem] border border-white/12 bg-[#174c35]/62 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:p-6"
+      className="report-hero-overview rounded-[1.5rem] border border-white/12 bg-[#174c35]/62 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:p-6"
     >
       <section aria-labelledby="planting-progress-title">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-4 lg:flex-col lg:items-start xl:flex-row xl:items-end">
@@ -61,11 +61,20 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
         </div>
       </section>
 
+      <section aria-labelledby="carbon-status-title" className="mt-5 border-t border-white/10 pt-5">
+        <h3 className="text-sm font-semibold text-white" id="carbon-status-title">
+          CO₂ capturado · No disponible
+        </h3>
+        <p className="mt-2 text-xs leading-5 text-white/68">
+          Pendiente de metodología versionada y validación externa. La fuente no publica un valor de captura.
+        </p>
+      </section>
+
       <section aria-labelledby="territory-shortcut-title" className="mt-5 border-t border-white/10 pt-5">
         <h3 className="text-xs font-semibold uppercase tracking-[0.19em] text-[#acd0b7]" id="territory-shortcut-title">
           Territorio
         </h3>
-        <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1.35fr)_minmax(10rem,0.65fr)] sm:items-center lg:grid-cols-1 xl:grid-cols-[minmax(0,1.25fr)_minmax(10rem,0.75fr)]">
+        <div className="report-hero-territory mt-3 grid gap-3 sm:grid-cols-[minmax(0,1.35fr)_minmax(10rem,0.65fr)] sm:items-center lg:grid-cols-1 xl:grid-cols-[minmax(0,1.25fr)_minmax(10rem,0.75fr)]">
           <TerritoryPreview hasMapData={hasMapData} map={map} />
           <div className="min-w-0">
             <p className="text-sm font-medium leading-6 text-white/86">
@@ -91,10 +100,10 @@ export function ImpactOverviewCard({ dashboard }: ImpactOverviewCardProps) {
           Evidencia reciente
         </h3>
         {recentEvidence.length > 0 ? (
-          <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="report-hero-evidence mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_auto]">
             <div className="grid min-w-0 grid-cols-3 gap-2">
               {recentEvidence.map((item) => (
-                <div className="aspect-square min-w-0 overflow-hidden rounded-lg border border-white/12 bg-forest-950" key={item.id}>
+                <div className="report-hero-thumbnail aspect-square min-w-0 overflow-hidden rounded-lg border border-white/12 bg-forest-950" key={item.id}>
                   <img
                     alt={item.title ?? `Evidencia de plantación ${item.plantingRecordId}`}
                     className="size-full object-cover"
@@ -133,7 +142,7 @@ function TerritoryPreview({ hasMapData, map }: { hasMapData: boolean; map: Impac
 
   return (
     <div
-      className="relative h-28 overflow-hidden rounded-xl border border-white/12 bg-cover bg-center"
+      className="report-hero-map-preview relative h-28 overflow-hidden rounded-xl border border-white/12 bg-cover bg-center"
       style={{
         backgroundImage: "linear-gradient(145deg, rgba(4, 35, 24, 0.42), rgba(5, 45, 30, 0.2)), url('/territory-forest-aerial.jpg')",
       }}

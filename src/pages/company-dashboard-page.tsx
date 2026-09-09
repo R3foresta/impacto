@@ -12,6 +12,7 @@ import { LoadingState } from '../components/feedback/loading-state'
 import { PortalHeader } from '../components/layout/portal-header'
 import { LazyImpactMap } from '../components/map/lazy-impact-map'
 import type { ImpactDashboard, ImpactEvidence } from '../types/impact'
+import styles from './company-dashboard-page.module.css'
 
 export function CompanyDashboardPage() {
   const { organizationId } = useParams()
@@ -35,7 +36,7 @@ function OrganizationDashboardContent({ organizationId }: { organizationId: stri
   const dashboard = dashboardQuery.data
 
   return (
-    <div className="min-h-screen bg-mist-50">
+    <div className={`${styles.report} min-h-screen bg-mist-50`}>
       <PortalHeader
         organizationLogo={dashboard.organization.logo}
         organizationName={dashboard.organization.name}

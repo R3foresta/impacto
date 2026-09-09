@@ -1,0 +1,65 @@
+/* Keep the regular composition on tall screens and phones. The lower-height
+   variant stays in document flow, including evidence and source qualifiers. */
+@media (min-width: 48rem) and (max-height: 50rem) {
+  .report-hero-content {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .report-hero-grid {
+    align-items: start;
+    gap: 2rem;
+    padding-top: 1.5rem;
+    padding-bottom: 0;
+  }
+
+  .report-hero-title {
+    max-width: 22ch;
+    margin-top: 1rem;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.02;
+  }
+
+  .report-hero-methodology {
+    margin-top: 1.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .report-hero-actions {
+    margin-top: 1.5rem;
+  }
+
+  .report-hero-overview {
+    padding: 1.25rem;
+  }
+
+  .report-hero-overview > section + section,
+  .report-hero-overview > p {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .report-hero-territory {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  }
+
+  .report-hero-map-preview {
+    height: 5.5rem;
+  }
+
+  .report-hero-evidence {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .report-hero-thumbnail {
+    aspect-ratio: 1.5;
+  }
+}
+
+@media (min-width: 64rem) and (max-height: 50rem) {
+  .report-hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem);
+  }
+}

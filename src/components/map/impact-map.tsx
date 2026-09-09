@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import {
+  AlertTriangle,
+  Info,
   Camera,
   CircleCheck,
   ExternalLink,
@@ -35,6 +37,8 @@ import type {
   ImpactMapData,
   ImpactPlantingPoint,
 } from '../../types/impact'
+import { getTerritorialCheck, getTerritorialStatus, hasComparablePolygon, hasValidCoordinates } from './territorial-check'
+import type { TerritorialStatus } from './territorial-check'
 import { EvidenceViewer } from '../evidence/evidence-viewer'
 import { EmptyState } from '../feedback/empty-state'
 
@@ -54,7 +58,7 @@ type PointProperties = {
   id: number
   subcampaignId: number
   treesPlanted: number
-  withinArea: boolean
+  territorialStatus: TerritorialStatus
   highlighted: boolean
   selected: boolean
 }
@@ -110,7 +114,7 @@ const pointLayer: CircleLayerSpecification = {
   type: 'circle',
   source: 'impact-points',
   paint: {
-    'circle-color': ['case', ['boolean', ['get', 'withinArea'], false], '#0f5a3a', '#b58123'],
+    'circle-color': ['match', ['get', 'territorialStatus'], 'inside', '#0f5a3a', 'outside', '#b58123', '#64748b'],
     'circle-opacity': ['case', ['boolean', ['get', 'highlighted'], false], 1, 0.25],
     'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 7, 5],
   },
@@ -147,12 +151,14 @@ export function ImpactMap({
   const visiblePoints = selectedArea
     ? map.plantingPoints.filter((point) => point.subcampaignId === selectedArea.subcampaignId)
     : map.plantingPoints
+  const territorialCheck = getTerritorialCheck(visiblePoints, map.areas)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
   const initialBounds = useMemo(() => getMapBounds(map), [map])
   const areaGeoJson = useMemo<FeatureCollection<Polygon, AreaProperties>>(
     () => ({
       type: 'FeatureCollection',
       features: map.areas.flatMap((area) =>
-        area.polygon
+        hasComparablePolygon(area) && area.polygon
           ? [
               {
                 type: 'Feature' as const,
@@ -172,13 +178,13 @@ export function ImpactMap({
   const pointGeoJson = useMemo<FeatureCollection<Point, PointProperties>>(
     () => ({
       type: 'FeatureCollection',
-      features: map.plantingPoints.map((point) => ({
+      features: map.plantingPoints.filter(hasValidCoordinates).map((point) => ({
         type: 'Feature',
         properties: {
           id: point.id,
           subcampaignId: point.subcampaignId,
           treesPlanted: point.treesPlanted,
-          withinArea: point.withinArea,
+          territorialStatus: getTerritorialStatus(point, map.areas),
           highlighted: selectedAreaId === null || point.subcampaignId === selectedAreaId,
           selected: point.id === selectedPointId,
         },
@@ -188,7 +194,7 @@ export function ImpactMap({
         },
       })),
     }),
-    [map.plantingPoints, selectedAreaId, selectedPointId],
+    [map.plantingPoints, map.areas, selectedAreaId, selectedPointId],
   )
 
   function focusBounds(bounds: LngLatBoundsLike, maxZoom = 16) {
@@ -212,9 +218,16 @@ export function ImpactMap({
     const area = map.areas.find((item) => item.subcampaignId === areaId)
     const areaPositions = area ? getAreaPositions(area) : []
     const areaPoints = map.plantingPoints
-      .filter((point) => point.subcampaignId === areaId)
+      .filter((point) => point.subcampaignId === areaId && hasValidCoordinates(point))
       .map((point) => [point.longitude, point.latitude] satisfies Position)
     focusBounds(getBoundsFromPositions([...areaPositions, ...areaPoints]), 17)
+  }
+
+  function locatePoint(point: ImpactPlantingPoint) {
+    setSelectedPointId(point.id)
+    setSelectedEvidenceId(null)
+    focusBounds(getBoundsFromPositions([[point.longitude, point.latitude]]), 17)
+    mapContainerRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }
 
   function handleMapClick(event: MapLayerMouseEvent) {
@@ -229,7 +242,8 @@ export function ImpactMap({
       const pointId = Number(feature.properties.id)
       const point = map.plantingPoints.find((item) => item.id === pointId)
       if (!point) return
-      setSelectedAreaId(point.subcampaignId)
+      setSelectedAreaId(map.areas.some((area) => area.subcampaignId === point.subcampaignId)
+        ? point.subcampaignId : null)
       setSelectedPointId(point.id)
       setSelectedEvidenceId(null)
       return
@@ -262,7 +276,7 @@ export function ImpactMap({
 
       {!hasMapData ? (
         <div className="mt-9">
-          <EmptyState detail="No hay polígonos ni puntos GPS publicables." title="Sin datos de mapa" />
+          <EmptyState detail="Comprobación territorial no disponible: no hay polígonos ni puntos GPS publicables." title="Sin datos de mapa" />
         </div>
       ) : (
         <div className="mt-10 overflow-hidden rounded-[1.75rem] border border-[var(--border)] bg-white shadow-[0_20px_60px_rgba(23,47,35,0.07)]">
@@ -291,8 +305,52 @@ export function ImpactMap({
             ))}
           </div>
 
+          <div aria-live="polite" className="border-b border-[var(--border)] px-5 py-4 sm:px-7">
+            <p className="mb-2 text-xs font-semibold text-stone-600">
+              Comprobación territorial · {selectedArea?.name ?? 'Todas las zonas'}
+            </p>
+            {territorialCheck.outside.length > 0 ? (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
+                <p className="flex items-start gap-2 font-semibold">
+                  <AlertTriangle aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+                  <span>{formatCount(territorialCheck.outside.length)} {territorialCheck.outside.length === 1
+                    ? 'registro de plantación está fuera del polígono publicado'
+                    : 'registros de plantación están fuera del polígono publicado'}</span>
+                </p>
+                <p className="mt-2 text-sm">Resultado de la comprobación publicada para esta vista.</p>
+                <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto p-1">
+                  {territorialCheck.outside.map((point) => (
+                    <li key={point.id}>
+                      <button
+                        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-amber-400 bg-white px-3 py-2 text-left text-sm font-semibold hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-800 focus-visible:ring-offset-2"
+                        onClick={() => locatePoint(point)}
+                        type="button"
+                      >
+                        <MapPinned aria-hidden="true" className="size-4 shrink-0" />
+                        Localizar registro #{point.id} · {formatDate(point.plantedAt)} · {formatCount(point.treesPlanted)} árboles
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : territorialCheck.comparable > 0 ? (
+              <p className="flex items-start gap-2 text-sm text-forest-800">
+                <CircleCheck aria-hidden="true" className="size-5 shrink-0" />
+                Todos los registros comparables de esta vista están dentro del polígono publicado.
+              </p>
+            ) : null}
+            {territorialCheck.unavailable > 0 || territorialCheck.comparable === 0 ? (
+              <p className="mt-2 flex items-start gap-2 text-sm text-stone-700">
+                <Info aria-hidden="true" className="size-5 shrink-0" />
+                <span>Comprobación territorial no disponible{territorialCheck.unavailable > 0
+                  ? ` para ${formatCount(territorialCheck.unavailable)} ${territorialCheck.unavailable === 1 ? 'registro' : 'registros'}`
+                  : ' en esta vista'}: faltan polígonos, coordenadas válidas o información suficiente.</span>
+              </p>
+            ) : null}
+          </div>
+
           <div className="grid lg:grid-cols-[minmax(0,1.7fr)_minmax(19rem,0.62fr)]">
-            <div className="relative min-h-[32rem] overflow-hidden bg-[#dfe9df] lg:min-h-[42rem]">
+            <div ref={mapContainerRef} className="relative scroll-mt-28 min-h-[32rem] overflow-hidden bg-[#dfe9df] lg:min-h-[42rem]">
               <MapCanvas
                 aria-label="Mapa interactivo de zonas y plantaciones publicadas"
                 attributionControl={{ compact: true }}
@@ -341,6 +399,7 @@ export function ImpactMap({
                     }}
                     onEvidenceSelect={setSelectedEvidenceId}
                     point={selectedPoint}
+                    territorialStatus={getTerritorialStatus(selectedPoint, map.areas)}
                   />
                 ) : null}
               </MapCanvas>
@@ -355,10 +414,11 @@ export function ImpactMap({
                 <Legend color="#247044" label="Zona seleccionada" />
                 <Legend color="#0f5a3a" label="Plantación dentro del área" />
                 <Legend color="#b58123" label="Plantación fuera del área" />
+                <Legend color="#64748b" label="Comprobación no disponible" />
               </div>
             </div>
 
-            <MapDetailPanel area={selectedArea} points={visiblePoints} totalAreas={map.areas.length} />
+            <MapDetailPanel area={selectedArea} points={visiblePoints} totalAreas={map.areas.length} check={territorialCheck} />
           </div>
         </div>
       )}
@@ -379,11 +439,13 @@ function PointPopup({
   onClose,
   onEvidenceSelect,
   point,
+  territorialStatus,
 }: {
   evidence: ImpactEvidence[]
   onClose: () => void
   onEvidenceSelect: (evidenceId: number) => void
   point: ImpactPlantingPoint
+  territorialStatus: TerritorialStatus
 }) {
   return (
     <Popup
@@ -399,7 +461,7 @@ function PointPopup({
     >
       <div className="w-72 max-w-[calc(100vw-4rem)] p-4 pr-8 text-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-forest-700">
-          Registro de plantación
+          Registro de plantación #{point.id}
         </p>
         <p className="mt-2 text-xl font-semibold tracking-[-0.03em] text-[var(--text-h)]">
           {formatCount(point.treesPlanted)} árboles
@@ -407,7 +469,7 @@ function PointPopup({
         <p className="mt-1 text-[var(--text)]">{formatDate(point.plantedAt)}</p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <span className="rounded-full bg-[#edf4ee] px-2.5 py-1 font-medium text-forest-800">
-            {point.withinArea ? 'Dentro del área' : 'Fuera del área'}
+            {territorialStatus === 'unavailable' ? 'Comprobación no disponible' : territorialStatus === 'inside' ? 'Dentro del área' : 'Fuera del área'}
           </span>
           <span className="rounded-full bg-mist-100 px-2.5 py-1 font-medium text-[#526159]">
             {formatCount(point.evidenceCount)} {point.evidenceCount === 1 ? 'evidencia' : 'evidencias'}
@@ -463,14 +525,15 @@ function MapDetailPanel({
   area,
   points,
   totalAreas,
+  check,
 }: {
   area: ImpactArea | null
   points: ImpactPlantingPoint[]
   totalAreas: number
+  check: ReturnType<typeof getTerritorialCheck>
 }) {
   const trees = points.reduce((total, point) => total + point.treesPlanted, 0)
   const evidence = points.reduce((total, point) => total + point.evidenceCount, 0)
-  const insideArea = points.filter((point) => point.withinArea).length
 
   return (
     <aside
@@ -491,7 +554,7 @@ function MapDetailPanel({
         {area ? <DetailFact label="Superficie" value={formatHectares(area.hectares)} /> : null}
         <DetailFact label="Puntos GPS" value={formatCount(points.length)} />
         <DetailFact label="Árboles plantados" value={formatCount(trees)} />
-        <DetailFact label="Dentro del área" value={`${formatCount(insideArea)} de ${formatCount(points.length)}`} />
+        <DetailFact label="Dentro del área" value={check.comparable > 0 ? `${formatCount(check.inside)} de ${formatCount(check.comparable)} comparables` : 'No disponible'} />
         <DetailFact label="Evidencias" value={formatCount(evidence)} />
       </dl>
 
@@ -509,7 +572,7 @@ function MapDetailPanel({
             Registros de la vista
           </p>
           <div className="mt-3 space-y-2">
-            {points.slice(0, 3).map((point) => (
+            {points.filter(hasValidCoordinates).slice(0, 3).map((point) => (
               <a
                 className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] px-3 py-3 text-sm text-[var(--text-h)] transition hover:bg-mist-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 href={getOpenStreetMapUrl(point.latitude, point.longitude)}
@@ -541,13 +604,13 @@ function MapDetailPanel({
 }
 
 function getAreaPositions(area: ImpactArea): Position[] {
-  return area.polygon?.coordinates.flatMap((ring) => ring) ?? []
+  return hasComparablePolygon(area) ? area.polygon?.coordinates.flatMap((ring) => ring) ?? [] : []
 }
 
 function getMapBounds(map: ImpactMapData): LngLatBoundsLike {
   const positions = [
     ...map.areas.flatMap(getAreaPositions),
-    ...map.plantingPoints.map((point) => [point.longitude, point.latitude] satisfies Position),
+    ...map.plantingPoints.filter(hasValidCoordinates).map((point) => [point.longitude, point.latitude] satisfies Position),
   ]
   return getBoundsFromPositions(positions)
 }

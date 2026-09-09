@@ -13,6 +13,9 @@ export function formatDate(value: string | null | undefined): string {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    // A planting date is a calendar day, not midnight UTC converted to local
+    // time (which would display the previous day in Bolivia).
+    ...(/^\d{4}-\d{2}-\d{2}$/.test(value) ? { timeZone: 'UTC' } : {}),
   }).format(new Date(value))
 }
 

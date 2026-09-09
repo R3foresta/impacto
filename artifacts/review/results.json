@@ -1,0 +1,78 @@
+{
+  "results": [
+    {
+      "name": "Direct link after asynchronous dashboard load",
+      "passed": true,
+      "detail": {
+        "top": 103.96875,
+        "header": 85,
+        "active": "#monitoreo",
+        "focus": "monitoreo"
+      }
+    },
+    {
+      "name": "Hero and navigation 1427x757",
+      "passed": true,
+      "detail": {
+        "margin": 213.265625,
+        "overflow": 0,
+        "overlay": false
+      }
+    },
+    {
+      "name": "Hero and navigation 1280x757",
+      "passed": true,
+      "detail": {
+        "margin": 235.765625,
+        "overflow": 0,
+        "overlay": false
+      }
+    },
+    {
+      "name": "Hero and navigation 1024x757",
+      "passed": true,
+      "detail": {
+        "margin": 198.6875,
+        "overflow": 0,
+        "overlay": false
+      }
+    },
+    {
+      "name": "Hero and navigation 1440x900",
+      "passed": true,
+      "detail": {
+        "margin": 123.3125,
+        "overflow": 0,
+        "overlay": false
+      }
+    },
+    {
+      "name": "Hero and navigation 390x844",
+      "passed": true,
+      "detail": {
+        "margin": 102.71875,
+        "overflow": 0,
+        "overlay": false
+      }
+    },
+    {
+      "name": "Browser Back returns to previous section",
+      "passed": true,
+      "detail": {
+        "top": 103.96875,
+        "header": 85,
+        "active": "#monitoreo",
+        "focus": "monitoreo"
+      }
+    },
+    {
+      "name": "Territorial warning, filters and record action",
+      "passed": true
+    },
+    {
+      "name": "Empty organization and unavailable dates",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

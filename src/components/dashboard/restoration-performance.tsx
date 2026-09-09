@@ -61,7 +61,7 @@ export function RestorationPerformance({
           </h2>
         </div>
         <p className="max-w-3xl text-base leading-7 text-[var(--text)] sm:text-lg sm:leading-8">
-          Supervivencia, pérdidas, reposiciones y especies calculadas únicamente con los
+          Supervivencia reportada, diferencia calculada de pérdidas, reposiciones y especies según los
           registros publicados de las campañas asociadas.
         </p>
       </div>
@@ -83,10 +83,10 @@ export function RestorationPerformance({
         <div>
           <p className="leading-6 text-[#5f5b51]">
             <strong className="font-semibold text-[var(--text-h)]">Aclaración metodológica.</strong>{' '}
-            La mortandad visible es una diferencia acumulada entre árboles plantados y vivos
-            reportados; no sustituye una serie de eventos de monitoreo. El portal todavía no
-            publica CO₂ proyectado ni certificado porque el API no entrega una metodología
-            versionada ni validación externa.
+            La pérdida mostrada es una diferencia calculada entre plantación inicial más reposiciones
+            y árboles reportados vivos, con un mínimo de cero. No acredita eventos de mortalidad;
+            una diferencia de cero no confirma ausencia de pérdidas. CO₂ capturado: no disponible,
+            pendiente de metodología versionada y validación externa.
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.07em]">
             <span className="rounded-md border border-[#dce5dc] bg-[#f1f6f1] px-2.5 py-1 text-forest-800">
@@ -96,7 +96,7 @@ export function RestorationPerformance({
               Georreferenciado · evidencia
             </span>
             <span className="rounded-md border border-[#eadfca] bg-[#faf4e7] px-2.5 py-1 text-[#8c692d]">
-              CO₂ · pendiente de metodología
+              CO₂ capturado · No disponible
             </span>
           </div>
         </div>
@@ -115,9 +115,9 @@ function SurvivalCard({
   return (
     <Card className="overflow-hidden rounded-[1.5rem] shadow-[0_16px_45px_rgba(23,47,35,0.055)]">
       <CardHeader className="gap-2 p-6 pb-0 sm:p-7 sm:pb-0">
-        <CardTitle className="text-xl tracking-[-0.025em]">Supervivencia por campaña</CardTitle>
+        <CardTitle className="text-xl tracking-[-0.025em]">Supervivencia reportada por campaña</CardTitle>
         <CardDescription className="text-sm leading-6">
-          Porcentaje de árboles vivos sobre plantados. Referencia: 80%.
+          Porcentaje reportado de árboles vivos respecto de plantados. Referencia: 80%. Fecha de observación de supervivencia no disponible.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex min-h-80 flex-col p-6 pt-7 sm:p-7 sm:pt-7">
@@ -131,7 +131,7 @@ function SurvivalCard({
           <InlineEmpty message="Todavía no hay campañas asociadas." />
         )}
         <div className="mt-auto flex items-center justify-between gap-4 border-t border-dashed border-[var(--border)] pt-5 text-sm">
-          <span className="text-[var(--text)]">Total ponderado</span>
+          <span className="text-[var(--text)]">Supervivencia reportada total</span>
           <strong className="font-semibold text-[var(--text-h)]">
             {formatPercentage(weightedSurvival)}
           </strong>
@@ -173,20 +173,23 @@ function MortalityCard({ summary }: { summary: ImpactDashboard['summary'] }) {
   return (
     <Card className="overflow-hidden rounded-[1.5rem] shadow-[0_16px_45px_rgba(23,47,35,0.055)]">
       <CardHeader className="gap-2 p-6 pb-0 sm:p-7 sm:pb-0">
-        <CardTitle className="text-xl tracking-[-0.025em]">Mortandad y reposiciones</CardTitle>
+        <CardTitle className="text-xl tracking-[-0.025em]">Pérdidas calculadas y reposiciones</CardTitle>
         <CardDescription className="text-sm leading-6">
-          Balance acumulado al corte del reporte.
+          Diferencia calculada: plantación inicial más reposiciones menos árboles reportados vivos, con un mínimo de cero. No representa eventos de mortalidad verificados.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex min-h-80 flex-col p-6 pt-7 sm:p-7 sm:pt-7">
         <div className="space-y-7">
-          <BalanceRow
+          {plantedTotal > 0 ? <BalanceRow
             color="#ad3535"
             Icon={TrendingDown}
-            label="Mortandad derivada"
+            label="Pérdida calculada"
             scale={scale}
             value={mortality}
-          />
+          /> : <InlineEmpty message="Sin plantaciones publicadas para calcular pérdidas." />}
+          {plantedTotal > 0 && mortality === 0 ? (
+            <p className="text-sm leading-6 text-[var(--text)]">Una diferencia de cero no confirma ausencia de pérdidas; no se dispone de eventos de mortalidad en este reporte.</p>
+          ) : null}
           <BalanceRow
             color="#315f88"
             Icon={Undo2}
@@ -196,7 +199,7 @@ function MortalityCard({ summary }: { summary: ImpactDashboard['summary'] }) {
           />
         </div>
         <div className="mt-auto border-t border-dashed border-[var(--border)] pt-5 text-sm leading-6 text-[var(--text)]">
-          Base observada: <strong className="font-semibold text-[var(--text-h)]">{formatCount(plantedTotal)}</strong>{' '}
+          Base calculada: <strong className="font-semibold text-[var(--text-h)]">{formatCount(plantedTotal)}</strong>{' '}
           árboles entre plantación inicial y reposiciones.
         </div>
       </CardContent>

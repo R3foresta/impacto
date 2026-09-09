@@ -1,0 +1,13 @@
+.report > main > section[id] {
+  /* The document already supplies the sticky-header offset via scroll-padding. */
+  scroll-margin-top: 0;
+}
+
+.report section[id]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.report > section:focus-visible {
+  outline-color: white;
+}
