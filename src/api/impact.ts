@@ -2,9 +2,14 @@ import { z } from 'zod'
 import {
   impactCampaignDetailSchema,
   impactDashboardSchema,
+  impactEvidenceGalleryResponseSchema,
+  impactMonitoringTimelineResponseSchema,
   impactOrganizationsResponseSchema,
   type ImpactCampaignDetail,
   type ImpactDashboard,
+  type ImpactEvidenceFilters,
+  type ImpactEvidenceGallery,
+  type ImpactMonitoringTimeline,
   type ImpactOrganization,
 } from '../types/impact'
 
@@ -115,6 +120,36 @@ export async function getImpactCampaignDetail(
   const response = await requestImpact(
     `/organizations/${encodeId(organizationId)}/campaigns/${encodeId(campaignId)}`,
     impactCampaignDetailSchema,
+  )
+  return response.data
+}
+
+export async function getImpactMonitoringTimeline(
+  organizationId: number | string,
+  campaignId?: number,
+): Promise<ImpactMonitoringTimeline> {
+  const params = new URLSearchParams()
+  if (campaignId !== undefined) params.set('campaignId', String(campaignId))
+  const suffix = params.size > 0 ? `?${params.toString()}` : ''
+  const response = await requestImpact(
+    `/organizations/${encodeId(organizationId)}/monitoring-timeline${suffix}`,
+    impactMonitoringTimelineResponseSchema,
+  )
+  return response.data
+}
+
+export async function getImpactEvidenceGallery(
+  organizationId: number | string,
+  filters: ImpactEvidenceFilters = {},
+): Promise<ImpactEvidenceGallery> {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== '') params.set(key, String(value))
+  }
+  const suffix = params.size > 0 ? `?${params.toString()}` : ''
+  const response = await requestImpact(
+    `/organizations/${encodeId(organizationId)}/evidence${suffix}`,
+    impactEvidenceGalleryResponseSchema,
   )
   return response.data
 }

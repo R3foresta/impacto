@@ -49,6 +49,7 @@ function OrganizationDashboardContent({ organizationId }: { organizationId: stri
           campaigns={dashboard.campaigns}
           organizationId={dashboard.organization.id}
           summary={dashboard.summary}
+          speciesMix={dashboard.speciesMix}
         />
         <CampaignList campaigns={dashboard.campaigns} organizationId={dashboard.organization.id} />
 
@@ -60,9 +61,9 @@ function OrganizationDashboardContent({ organizationId }: { organizationId: stri
         />
         <EvidenceList
           campaigns={dashboard.campaigns}
-          evidence={dashboard.evidencePreview}
+          organizationId={dashboard.organization.id}
           plantingPoints={dashboard.map.plantingPoints}
-          totalCount={dashboard.summary.evidenceCount}
+          speciesMix={dashboard.speciesMix}
         />
       </main>
     </div>

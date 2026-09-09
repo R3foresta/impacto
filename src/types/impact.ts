@@ -41,15 +41,25 @@ export const impactMetricsSchema = z.object({
 })
 export type ImpactMetrics = z.infer<typeof impactMetricsSchema>
 
+export const impactSpeciesSchema = z.object({
+  id: idSchema,
+  commonName: nullableTextSchema,
+  scientificName: nullableTextSchema,
+  quantity: nonNegativeIntegerSchema,
+})
+export type ImpactSpecies = z.infer<typeof impactSpeciesSchema>
+
 export const impactEvidenceSchema = z.object({
   id: idSchema,
   plantingRecordId: idSchema,
   campaignId: idSchema,
   subcampaignId: idSchema,
+  publicTraceabilityCode: nullableTextSchema,
   title: nullableTextSchema,
   imageUrl: publicUrlSchema,
   takenAt: nullableTimestampSchema,
   isPrimary: z.boolean(),
+  species: z.array(impactSpeciesSchema),
 })
 export type ImpactEvidence = z.infer<typeof impactEvidenceSchema>
 
@@ -111,13 +121,17 @@ export const impactCampaignCardSchema = z.object({
 })
 export type ImpactCampaignCard = z.infer<typeof impactCampaignCardSchema>
 
-export const impactSpeciesSchema = z.object({
-  id: idSchema,
+export const impactSpeciesMixItemSchema = z.object({
+  speciesId: idSchema,
   commonName: nullableTextSchema,
   scientificName: nullableTextSchema,
+  taxonomyId: nullableTextSchema,
+  ecologicalCategory: nullableTextSchema,
+  origin: z.enum(['NATIVE', 'INTRODUCED', 'URBAN_TOLERANT', 'UNKNOWN']),
   quantity: nonNegativeIntegerSchema,
+  quantityStage: z.literal('PLANTED'),
 })
-export type ImpactSpecies = z.infer<typeof impactSpeciesSchema>
+export type ImpactSpeciesMixItem = z.infer<typeof impactSpeciesMixItemSchema>
 
 export const impactPlantingRecordSchema = z.object({
   id: idSchema,
@@ -163,6 +177,20 @@ export const impactMapSchema = z.object({
 })
 export type ImpactMapData = z.infer<typeof impactMapSchema>
 
+export const impactMonitoringTimelinePointSchema = z.object({
+  date: z.string().date(),
+  campaignId: idSchema,
+  monitoringRecordId: idSchema,
+  treesMonitored: nonNegativeIntegerSchema,
+  treesAlive: nonNegativeIntegerSchema,
+  deathsNew: nonNegativeIntegerSchema,
+  deathsAccumulated: nonNegativeIntegerSchema,
+  replacementsNew: nonNegativeIntegerSchema,
+  replacementsAccumulated: nonNegativeIntegerSchema,
+  source: z.enum(['PLANTING_INITIAL', 'PLANTING_REPLACEMENT', 'MORTALITY_REPORT']),
+})
+export type ImpactMonitoringTimelinePoint = z.infer<typeof impactMonitoringTimelinePointSchema>
+
 export const impactOrganizationsResponseSchema = z.object({
   success: z.literal(true),
   data: z.array(impactOrganizationSchema),
@@ -183,6 +211,7 @@ export const impactDashboardSchema = z.object({
     }),
     campaigns: z.array(impactCampaignCardSchema),
     map: impactMapSchema,
+    speciesMix: z.array(impactSpeciesMixItemSchema),
     evidencePreview: z.array(impactEvidenceSchema),
     generatedAt: z.string().datetime({ offset: true }),
   }),
@@ -204,3 +233,42 @@ export const impactCampaignDetailSchema = z.object({
 })
 export type ImpactCampaignDetailResponse = z.infer<typeof impactCampaignDetailSchema>
 export type ImpactCampaignDetail = ImpactCampaignDetailResponse['data']
+
+export const impactMonitoringTimelineResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    organization: impactOrganizationSchema,
+    campaignId: idSchema.nullable(),
+    points: z.array(impactMonitoringTimelinePointSchema),
+    dataAvailability: z.object({
+      plantingRecordsCount: nonNegativeIntegerSchema,
+      mortalityReportsCount: nonNegativeIntegerSchema,
+      hasMortalityMonitoring: z.boolean(),
+    }),
+    generatedAt: z.string().datetime({ offset: true }),
+  }),
+})
+export type ImpactMonitoringTimelineResponse = z.infer<typeof impactMonitoringTimelineResponseSchema>
+export type ImpactMonitoringTimeline = ImpactMonitoringTimelineResponse['data']
+
+export const impactEvidenceGalleryResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    items: z.array(impactEvidenceSchema),
+    page: z.number().int().positive(),
+    pageSize: z.number().int().positive().max(100),
+    total: nonNegativeIntegerSchema,
+    totalPages: nonNegativeIntegerSchema,
+  }),
+})
+export type ImpactEvidenceGalleryResponse = z.infer<typeof impactEvidenceGalleryResponseSchema>
+export type ImpactEvidenceGallery = ImpactEvidenceGalleryResponse['data']
+
+export type ImpactEvidenceFilters = {
+  page?: number
+  pageSize?: number
+  campaignId?: number
+  speciesId?: number
+  from?: string
+  to?: string
+}

@@ -1,22 +1,21 @@
-import { useQueries } from '@tanstack/react-query'
-import { Info, Leaf, TrendingDown, Undo2 } from 'lucide-react'
+import { useQuery, type UseQueryResult } from '@tanstack/react-query'
+import { Activity, Info, Leaf, TrendingDown, Undo2 } from 'lucide-react'
 
-import { getImpactCampaignDetail } from '../../api/impact'
+import { getImpactMonitoringTimeline } from '../../api/impact'
 import { formatCount, formatPercentage } from '../../lib/formatters'
-import type { ImpactCampaignCard, ImpactCampaignDetail, ImpactDashboard } from '../../types/impact'
+import type {
+  ImpactCampaignCard,
+  ImpactDashboard,
+  ImpactMonitoringTimeline,
+  ImpactSpeciesMixItem,
+} from '../../types/impact'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 
 type RestorationPerformanceProps = {
   organizationId: number
   campaigns: ImpactCampaignCard[]
   summary: ImpactDashboard['summary']
-}
-
-type SpeciesMixItem = {
-  id: number
-  label: string
-  scientificName: string | null
-  quantity: number
+  speciesMix: ImpactSpeciesMixItem[]
 }
 
 const speciesColors = ['#1d513a', '#56a875', '#9ac9a1', '#b18338', '#6f7f76']
@@ -25,26 +24,13 @@ export function RestorationPerformance({
   organizationId,
   campaigns,
   summary,
+  speciesMix,
 }: RestorationPerformanceProps) {
-  const campaignDetailQueries = useQueries({
-    queries: campaigns.map((campaign) => ({
-      queryKey: [
-        'impact',
-        'campaign-detail',
-        String(organizationId),
-        String(campaign.id),
-      ],
-      queryFn: () => getImpactCampaignDetail(organizationId, campaign.id),
-      staleTime: 60_000,
-    })),
+  const timelineQuery = useQuery({
+    queryKey: ['impact', 'monitoring-timeline', String(organizationId)],
+    queryFn: () => getImpactMonitoringTimeline(organizationId),
+    staleTime: 60_000,
   })
-  const campaignDetails = campaignDetailQueries.flatMap((query) =>
-    query.data ? [query.data] : [],
-  )
-  const species = collectSpecies(campaignDetails)
-  const speciesPending = campaignDetailQueries.some((query) => query.isPending)
-  const speciesUnavailable =
-    campaignDetailQueries.length > 0 && campaignDetailQueries.every((query) => query.isError)
 
   return (
     <section aria-labelledby="performance-title" className="scroll-mt-28" id="monitoreo">
@@ -69,11 +55,7 @@ export function RestorationPerformance({
       <div className="mt-10 grid gap-5 xl:grid-cols-3">
         <SurvivalCard campaigns={campaigns} weightedSurvival={summary.survivalPct} />
         <MortalityCard summary={summary} />
-        <SpeciesCard
-          pending={speciesPending}
-          species={species}
-          unavailable={speciesUnavailable}
-        />
+        <SpeciesCard species={speciesMix} />
       </div>
 
       <div className="mt-6 grid gap-4 rounded-[1.5rem] border border-[#e7dcc2] bg-[#fffdf7] p-5 text-sm shadow-[0_12px_35px_rgba(86,65,27,0.04)] sm:grid-cols-[auto_minmax(0,1fr)] sm:p-6">
@@ -101,6 +83,8 @@ export function RestorationPerformance({
           </div>
         </div>
       </div>
+
+      <MonitoringTimeline query={timelineQuery} />
     </section>
   )
 }
@@ -240,15 +224,7 @@ function BalanceRow({
   )
 }
 
-function SpeciesCard({
-  pending,
-  species,
-  unavailable,
-}: {
-  pending: boolean
-  species: SpeciesMixItem[]
-  unavailable: boolean
-}) {
+function SpeciesCard({ species }: { species: ImpactSpeciesMixItem[] }) {
   const total = species.reduce((sum, item) => sum + item.quantity, 0)
   const visibleSpecies = collapseSpecies(species)
 
@@ -261,9 +237,7 @@ function SpeciesCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex min-h-80 flex-col p-6 pt-7 sm:p-7 sm:pt-7">
-        {pending && species.length === 0 ? <InlineEmpty message="Consultando especies registradas…" /> : null}
-        {unavailable ? <InlineEmpty message="No fue posible consultar el detalle de especies." /> : null}
-        {!pending && !unavailable && species.length === 0 ? (
+        {species.length === 0 ? (
           <InlineEmpty message="Las campañas todavía no tienen especies detalladas." />
         ) : null}
         {visibleSpecies.length > 0 ? (
@@ -272,7 +246,7 @@ function SpeciesCard({
               {visibleSpecies.map((item, index) => (
                 <span
                   aria-hidden="true"
-                  key={item.id}
+                  key={item.speciesId}
                   style={{
                     backgroundColor: speciesColors[index] ?? speciesColors.at(-1),
                     width: `${total > 0 ? (item.quantity / total) * 100 : 0}%`,
@@ -282,10 +256,12 @@ function SpeciesCard({
             </div>
             <div className="mt-6 space-y-4">
               {visibleSpecies.map((item, index) => (
-                <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3" key={item.id}>
+                <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3" key={item.speciesId}>
                   <span className="mt-1 size-3 rounded-sm" style={{ backgroundColor: speciesColors[index] ?? speciesColors.at(-1) }} />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-[var(--text-h)]">{item.label}</p>
+                    <p className="truncate text-sm font-medium text-[var(--text-h)]">
+                      {item.commonName ?? item.scientificName ?? `Especie ${item.speciesId}`}
+                    </p>
                     {item.scientificName ? (
                       <p className="mt-0.5 truncate text-xs italic text-stone-500">{item.scientificName}</p>
                     ) : null}
@@ -310,6 +286,100 @@ function SpeciesCard({
   )
 }
 
+function MonitoringTimeline({
+  query,
+}: {
+  query: UseQueryResult<ImpactMonitoringTimeline>
+}) {
+  if (query.isPending) {
+    return <TimelinePanel><InlineEmpty message="Consultando el historial publicado…" /></TimelinePanel>
+  }
+
+  if (query.isError) {
+    return <TimelinePanel><InlineEmpty message="No fue posible cargar el historial publicado." /></TimelinePanel>
+  }
+
+  const { dataAvailability, points } = query.data
+  const latest = points.at(-1)
+  const recentPoints = points.slice(-4).reverse()
+  const hasMortalityMonitoring = dataAvailability.hasMortalityMonitoring
+
+  return (
+    <TimelinePanel
+      description={hasMortalityMonitoring
+        ? 'Cortes acumulados de plantación, reposiciones y eventos de mortandad reportada.'
+        : 'Historial de plantaciones y reposiciones. Aún no hay eventos de mortandad reportada.'}
+      title={hasMortalityMonitoring ? 'Monitoreo publicado' : 'Historial de plantaciones'}
+    >
+      {latest ? (
+        <>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <TimelineMetric label="Árboles incorporados" value={formatCount(latest.treesMonitored)} />
+            <TimelineMetric label="Árboles vivos al corte" value={formatCount(latest.treesAlive)} />
+            <TimelineMetric label="Mortandad reportada" value={formatCount(latest.deathsAccumulated)} />
+          </div>
+          <ol className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)]">
+            {recentPoints.map((point) => (
+              <li className="grid gap-1 py-3 text-sm sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-center sm:gap-4" key={`${point.source}-${point.monitoringRecordId}`}>
+                <span className="font-mono text-xs text-stone-500">{point.date}</span>
+                <span className="font-medium text-[var(--text-h)]">{timelineSourceLabel(point.source)}</span>
+                <span className="text-[var(--text)]">
+                  {point.source === 'MORTALITY_REPORT'
+                    ? `${formatCount(point.deathsNew)} reportados`
+                    : `${formatCount(point.treesMonitored)} árboles acumulados`}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : (
+        <InlineEmpty message="Todavía no hay registros publicados para construir un historial." />
+      )}
+      <p className="mt-5 text-xs leading-5 text-stone-500">
+        {hasMortalityMonitoring
+          ? `${formatCount(dataAvailability.mortalityReportsCount)} evento${dataAvailability.mortalityReportsCount === 1 ? '' : 's'} de mortandad reportada.`
+          : 'Sin eventos de mortandad, este historial no acredita monitoreo de supervivencia.'}
+      </p>
+    </TimelinePanel>
+  )
+}
+
+function TimelinePanel({
+  children,
+  description = 'Serie histórica de las plantaciones y eventos publicados.',
+  title = 'Historial publicado',
+}: {
+  children: React.ReactNode
+  description?: string
+  title?: string
+}) {
+  return (
+    <Card className="mt-6 overflow-hidden rounded-[1.5rem] shadow-[0_16px_45px_rgba(23,47,35,0.055)]">
+      <CardHeader className="gap-2 p-6 pb-0 sm:p-7 sm:pb-0">
+        <CardTitle className="flex items-center gap-2 text-xl tracking-[-0.025em]">
+          <Activity aria-hidden="true" className="size-5 text-forest-700" /> {title}
+        </CardTitle>
+        <CardDescription className="text-sm leading-6">{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="p-6 pt-7 sm:p-7 sm:pt-7">{children}</CardContent>
+    </Card>
+  )
+}
+
+function TimelineMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-mist-50 p-4">
+      <p className="text-xs text-[var(--text)]">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-[-0.035em] text-[var(--text-h)]">{value}</p>
+    </div>
+  )
+}
+
+function timelineSourceLabel(source: ImpactMonitoringTimeline['points'][number]['source']): string {
+  if (source === 'MORTALITY_REPORT') return 'Mortandad reportada'
+  return source === 'PLANTING_REPLACEMENT' ? 'Reposición registrada' : 'Plantación inicial'
+}
+
 function InlineEmpty({ message }: { message: string }) {
   return (
     <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-[var(--border)] bg-mist-50 px-5 text-center text-sm leading-6 text-[var(--text)]">
@@ -318,38 +388,21 @@ function InlineEmpty({ message }: { message: string }) {
   )
 }
 
-function collectSpecies(details: ImpactCampaignDetail[]): SpeciesMixItem[] {
-  const speciesById = new Map<number, SpeciesMixItem>()
-
-  for (const detail of details) {
-    for (const record of detail.plantingRecords) {
-      for (const species of record.species) {
-        const current = speciesById.get(species.id)
-        const label = species.commonName ?? species.scientificName ?? `Especie ${species.id}`
-        speciesById.set(species.id, {
-          id: species.id,
-          label,
-          scientificName: species.scientificName,
-          quantity: (current?.quantity ?? 0) + species.quantity,
-        })
-      }
-    }
-  }
-
-  return [...speciesById.values()].sort((a, b) => b.quantity - a.quantity)
-}
-
-function collapseSpecies(species: SpeciesMixItem[]): SpeciesMixItem[] {
+function collapseSpecies(species: ImpactSpeciesMixItem[]): ImpactSpeciesMixItem[] {
   if (species.length <= 5) return species
 
   const remaining = species.slice(4)
   return [
     ...species.slice(0, 4),
     {
-      id: -1,
-      label: `Otras ${remaining.length} especies`,
+      speciesId: -1,
+      commonName: `Otras ${remaining.length} especies`,
       scientificName: null,
+      taxonomyId: null,
+      ecologicalCategory: null,
+      origin: 'UNKNOWN',
       quantity: remaining.reduce((sum, item) => sum + item.quantity, 0),
+      quantityStage: 'PLANTED',
     },
   ]
 }

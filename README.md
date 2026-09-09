@@ -7,9 +7,14 @@ El portal consume el contrato público de impacto:
 - `GET /api/v1/impact/organizations`
 - `GET /api/v1/impact/organizations/:organizationId/dashboard`
 - `GET /api/v1/impact/organizations/:organizationId/campaigns/:campaignId`
+- `GET /api/v1/impact/organizations/:organizationId/monitoring-timeline`
+- `GET /api/v1/impact/organizations/:organizationId/evidence`
 
 Las respuestas se validan con Zod antes de llegar a las vistas y sus tipos
 TypeScript se infieren desde los mismos esquemas.
+
+La documentación de integración y las revisiones futuras no bloqueantes están
+en `DATOS_PENDIENTES_HOME_IMPACTO.md`.
 
 ```bash
 npm install

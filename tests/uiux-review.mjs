@@ -16,7 +16,7 @@ const fixture = {
   organization: { id: 1, name: 'Organización FICTICIA de prueba', logo: null, description: null },
   attribution: { label: 'Impacto asociado', method: 'CAMPAIGN_ASSOCIATION', quantified: false, note: 'Datos ficticios para verificar la interfaz.' },
   summary: { treesTarget: 1000, treesPlantedInitial: 100, treesReplanted: 0, treesAliveReported: 95, progressPct: 10, survivalPct: 95, hectares: 4, campaignsCount: 0, subcampaignsCount: 4, locationsCount: 4, plantingRecordsCount: 4, evidenceCount: 0, lastActivityAt: null },
-  campaigns: [], map: { areas, plantingPoints: points }, evidencePreview: [], generatedAt: '2026-09-08T12:00:00Z',
+  campaigns: [], map: { areas, plantingPoints: points }, speciesMix: [], evidencePreview: [], generatedAt: '2026-09-08T12:00:00Z',
 }
 impactDashboardSchema.parse({ success: true, data: fixture })
 let data = fixture
@@ -26,8 +26,22 @@ const results = []
 const errors = []
 page.on('pageerror', error => errors.push(error.message))
 await page.route('**/api/v1/impact/**', async route => {
-  if (route.request().url().endsWith('/dashboard')) await new Promise(resolve => setTimeout(resolve, 450))
-  await route.fulfill({ json: { success: true, data: route.request().url().endsWith('/organizations') ? [data.organization] : data } })
+  const path = new URL(route.request().url()).pathname
+  if (path.endsWith('/dashboard')) await new Promise(resolve => setTimeout(resolve, 450))
+  const response = path.endsWith('/organizations')
+    ? [data.organization]
+    : path.endsWith('/monitoring-timeline')
+      ? {
+          organization: data.organization,
+          campaignId: null,
+          points: [],
+          dataAvailability: { plantingRecordsCount: 0, mortalityReportsCount: 0, hasMortalityMonitoring: false },
+          generatedAt: data.generatedAt,
+        }
+      : path.endsWith('/evidence')
+        ? { items: [], page: 1, pageSize: 24, total: 0, totalPages: 0 }
+        : data
+  await route.fulfill({ json: { success: true, data: response } })
 })
 // Keep validation independent of the external basemap; actual map/point code runs.
 await page.route('https://tiles.openfreemap.org/styles/liberty', route => route.fulfill({ json: { version: 8, sources: {}, layers: [] } }))

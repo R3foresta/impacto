@@ -106,7 +106,7 @@ export function EvidenceViewer({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-forest-700">
-                  Evidencia verificable
+                  Evidencia publicada
                 </p>
                 <h2
                   className="mt-3 text-2xl font-semibold leading-tight tracking-[-0.035em] text-[var(--text-h)]"
@@ -137,6 +137,13 @@ export function EvidenceViewer({
                 label="Registro"
                 value={`PLT-${String(selectedEvidence.plantingRecordId).padStart(6, '0')}`}
               />
+              <ViewerFact
+                label="Trazabilidad"
+                value={selectedEvidence.publicTraceabilityCode ?? 'No disponible'}
+              />
+              {selectedEvidence.species.length > 0 ? (
+                <ViewerFact label="Especies" value={formatEvidenceSpecies(selectedEvidence.species)} />
+              ) : null}
               {point ? (
                 <ViewerFact label="Cantidad" value={`${formatCount(point.treesPlanted)} árboles`} />
               ) : null}
@@ -223,4 +230,10 @@ function ViewerNavigationButton({
 
 function getOpenStreetMapUrl(latitude: number, longitude: number): string {
   return `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=17/${latitude}/${longitude}`
+}
+
+function formatEvidenceSpecies(species: ImpactEvidence['species']): string {
+  return species
+    .map((item) => `${item.commonName ?? item.scientificName ?? `Especie ${item.id}`} · ${formatCount(item.quantity)}`)
+    .join(', ')
 }
