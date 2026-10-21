@@ -33,6 +33,11 @@ npm run dev
 En desarrollo, Vite redirige `/api` al backend NestJS en `http://localhost:3000`.
 Define `VITE_API_URL` en `.env.local` únicamente si necesitas usar otro origen.
 
+Las rutas relativas de fotografías públicas se resuelven contra el origen de la
+API configurada, también en resúmenes, campañas, registros y galerías. Las URLs
+absolutas publicadas conservan su destino. No se requieren credenciales para
+estas imágenes. Regresión de dominios distintos: `tests/impact-media.test.mjs`.
+
 ```bash
 npm run check
 npm run build

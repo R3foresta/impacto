@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { resolveSeedPhotoUrl } from '../lib/seed-bank'
+import { resolveCampaignEvidence, resolveDashboardEvidence, resolveGalleryEvidence } from '../lib/impact-media'
 import {
   impactCampaignDetailSchema,
   impactDashboardSchema,
@@ -121,7 +122,7 @@ export async function getImpactOrganizationDashboard(
     `/organizations/${encodeId(organizationId)}/dashboard`,
     impactDashboardSchema,
   )
-  return response.data
+  return resolveDashboardEvidence(response.data, impactApiBaseUrl)
 }
 
 export async function getImpactCampaignDetail(
@@ -132,7 +133,7 @@ export async function getImpactCampaignDetail(
     `/organizations/${encodeId(organizationId)}/campaigns/${encodeId(campaignId)}`,
     impactCampaignDetailSchema,
   )
-  return response.data
+  return resolveCampaignEvidence(response.data, impactApiBaseUrl)
 }
 
 export async function getImpactMonitoringTimeline(
@@ -162,7 +163,7 @@ export async function getImpactEvidenceGallery(
     `/organizations/${encodeId(organizationId)}/evidence${suffix}`,
     impactEvidenceGalleryResponseSchema,
   )
-  return response.data
+  return resolveGalleryEvidence(response.data, impactApiBaseUrl)
 }
 
 export async function getSeedBankOverview(signal?: AbortSignal) {
