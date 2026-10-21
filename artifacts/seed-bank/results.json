@@ -1,0 +1,57 @@
+{
+  "results": [
+    {
+      "name": "Public navigation from the existing home",
+      "passed": true
+    },
+    {
+      "name": "Pagination preserves access to all collections",
+      "passed": true
+    },
+    {
+      "name": "Species, place, date and mint filters are shareable and reset pagination",
+      "passed": true
+    },
+    {
+      "name": "Search and empty results",
+      "passed": true
+    },
+    {
+      "name": "Detail shows quantities, origin and actual mint link",
+      "passed": true
+    },
+    {
+      "name": "No mint, unknown balance and missing records remain explicit",
+      "passed": true
+    },
+    {
+      "name": "Invalid date range is blocked before requesting collections",
+      "passed": true
+    },
+    {
+      "name": "Responsive bank 1440px",
+      "passed": true
+    },
+    {
+      "name": "Responsive bank 1024px",
+      "passed": true
+    },
+    {
+      "name": "Responsive bank 390px",
+      "passed": true
+    },
+    {
+      "name": "Responsive bank 320px",
+      "passed": true
+    },
+    {
+      "name": "Empty and unavailable APIs never fabricate inventory",
+      "passed": true
+    },
+    {
+      "name": "Anonymous API requests send no authentication or session cookies",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

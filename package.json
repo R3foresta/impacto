@@ -9,7 +9,11 @@
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "check": "npm run typecheck && npm run lint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.mjs",
+    "test:seed-bank:browser": "node tests/seed-bank-browser.mjs",
+    "test:seed-bank:live": "node tests/seed-bank-live.mjs",
+    "test:seed-bank:live-browser": "node tests/seed-bank-live-browser.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

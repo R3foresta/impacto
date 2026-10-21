@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { ShieldCheck } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { ArrowUpRight, ShieldCheck, Sprout } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { getImpactOrganizations } from '../api/impact'
 import { OrganizationSelector } from '../components/company/company-selector'
@@ -36,6 +36,14 @@ export function CompanySelectionPage() {
             </p>
           </div>
         </section>
+
+        <Link className="group flex flex-col justify-between gap-5 rounded-2xl border border-[#d0dfcf] bg-[#eaf0e5] p-6 transition-colors hover:bg-[#e2ebdc] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-forest-700 sm:flex-row sm:items-center sm:p-8" to="/semillas">
+          <div className="flex items-start gap-4">
+            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-white text-forest-800"><Sprout aria-hidden="true" className="size-6" /></span>
+            <div><p className="text-xs font-semibold uppercase tracking-wider text-forest-700">Consulta pública · Sin iniciar sesión</p><h2 className="mt-2 text-2xl font-semibold tracking-tight text-forest-950">Banco de semillas</h2><p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text)]">Conoce las semillas recolectadas, sus cantidades, lugares de origen y enlaces de acuñación en Blockchain.</p></div>
+          </div>
+          <span className="inline-flex min-h-11 shrink-0 items-center gap-2 text-sm font-semibold text-forest-800 group-hover:underline">Explorar el banco <ArrowUpRight aria-hidden="true" className="size-4" /></span>
+        </Link>
 
         <section aria-labelledby="company-selection-title" className="mx-auto w-full max-w-5xl space-y-6">
           <div className="flex items-start gap-3">

@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-21T19:26:05.646Z",
+  "frontendOrigin": "http://127.0.0.1:5181",
+  "collectionsCount": 131,
+  "photosChecked": 2,
+  "checks": [
+    "Live public inventory renders the expected page and total count.",
+    "Browser pagination loads the next page from the real API.",
+    "A real collection opens its public quantity and origin detail.",
+    "The browser exposes the actual explorer URL for the selected minted collection.",
+    "Sanitized photographs load from the real backend in the browser.",
+    "Live inventory has no horizontal overflow on desktop and 390/320 px screens.",
+    "Live JSON API requests are anonymous and the browser reports no runtime errors."
+  ],
+  "errors": [],
+  "limitations": []
+}

@@ -1,6 +1,6 @@
 import { ArrowLeft, ChevronDown, Grid2X2 } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type MouseEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 import { OrganizationMark } from '../company/organization-mark'
 import { reportSections, useReportSection } from './use-report-section'
@@ -146,6 +146,7 @@ export function PortalHeader({
                 </nav>
               </div>
             ) : <span className="ml-auto" />}
+            <Link aria-label="Banco de semillas público" className="inline-flex min-h-11 shrink-0 items-center rounded-xl px-2 text-xs font-semibold text-forest-800 hover:bg-white focus-visible:outline-2 focus-visible:outline-forest-700 sm:text-sm" to="/semillas"><span className="sm:hidden">Semillas</span><span className="hidden sm:inline">Banco de semillas</span></Link>
             <Link aria-label="Cambiar cliente" className={`${reportNavigation ? '' : 'ml-auto'} inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-[#d7ddd6] bg-white px-3.5 text-sm font-semibold text-forest-950 shadow-sm transition hover:bg-mist-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]`} to="/">
               <Grid2X2 aria-hidden="true" className="size-4" />
               <span className="hidden sm:inline">Cambiar cliente</span>
@@ -153,7 +154,10 @@ export function PortalHeader({
             </Link>
           </>
         ) : (
-          <span className="ml-auto text-sm text-[var(--text)]">Portal de impacto</span>
+          <nav aria-label="Navegación del portal" className="ml-auto flex items-center gap-1 rounded-xl border border-[#d7ddd6] bg-white p-1 sm:gap-2">
+            <NavLink className={({ isActive }) => `inline-flex min-h-10 items-center justify-center rounded-lg px-2.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest-700 sm:px-4 sm:text-sm ${isActive ? 'bg-forest-800 text-white' : 'text-forest-700 hover:bg-mist-100'}`} end to="/">Restauración</NavLink>
+            <NavLink className={({ isActive }) => `inline-flex min-h-10 items-center justify-center rounded-lg px-2.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest-700 sm:px-4 sm:text-sm ${isActive ? 'bg-forest-800 text-white' : 'text-forest-700 hover:bg-mist-100'}`} to="/semillas">Banco de semillas</NavLink>
+          </nav>
         )}
       </div>
     </header>

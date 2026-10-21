@@ -1,4 +1,6 @@
 import { z } from 'zod'
+
+import { resolveSeedPhotoUrl } from '../lib/seed-bank'
 import {
   impactCampaignDetailSchema,
   impactDashboardSchema,
@@ -12,6 +14,13 @@ import {
   type ImpactMonitoringTimeline,
   type ImpactOrganization,
 } from '../types/impact'
+
+import {
+  seedBankOverviewResponseSchema,
+  seedCollectionDetailResponseSchema,
+  seedCollectionsResponseSchema,
+  type SeedBankFilters,
+} from '../types/seed-bank'
 
 const impactApiNamespace = '/api/v1/impact'
 const configuredApiBaseUrl =
@@ -63,12 +72,14 @@ function formatValidationError(error: z.ZodError): string {
     .join('; ')
 }
 
-async function requestImpact<T>(endpoint: string, schema: z.ZodType<T>): Promise<T> {
+async function requestImpact<T>(endpoint: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
   let response: Response
 
   try {
     response = await fetch(`${impactApiBaseUrl}${impactApiNamespace}${endpoint}`, {
       headers: { Accept: 'application/json' },
+      credentials: 'omit',
+      signal,
     })
   } catch (cause) {
     throw new ImpactApiError(`Unable to reach Impact API at ${endpoint}.`, {
@@ -152,4 +163,37 @@ export async function getImpactEvidenceGallery(
     impactEvidenceGalleryResponseSchema,
   )
   return response.data
+}
+
+export async function getSeedBankOverview(signal?: AbortSignal) {
+  const response = await requestImpact('/seed-bank', seedBankOverviewResponseSchema, signal)
+  return response.data
+}
+
+export async function getSeedCollections(filters: SeedBankFilters, signal?: AbortSignal) {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== '') params.set(key, String(value))
+  }
+  const response = await requestImpact(
+    `/seed-bank/collections?${params.toString()}`,
+    seedCollectionsResponseSchema,
+    signal,
+  )
+  return response.data
+}
+
+export async function getSeedCollection(id: string, signal?: AbortSignal) {
+  const response = await requestImpact(
+    `/seed-bank/collections/${encodeId(id)}`,
+    seedCollectionDetailResponseSchema,
+    signal,
+  )
+  return {
+    ...response.data,
+    fotos: response.data.fotos.map((photo) => ({
+      ...photo,
+      url: resolveSeedPhotoUrl(photo.url, impactApiBaseUrl),
+    })),
+  }
 }

@@ -13,6 +13,15 @@ El portal consume el contrato público de impacto:
 Las respuestas se validan con Zod antes de llegar a las vistas y sus tipos
 TypeScript se infieren desde los mismos esquemas.
 
+El **Banco de semillas** público está en `/semillas`, con fichas en
+`/semillas/:id`. Permite consultar cantidades por unidad, saldo, especies,
+ubicaciones, fechas y enlaces de acuñación sin iniciar sesión.
+Los endpoints públicos y su contrato están documentados en
+[`BANCO_SEMILLAS_API.md`](BANCO_SEMILLAS_API.md). La integración anónima se
+verificó con la API NestJS local de lectura y sus datos configurados, sin
+modificar registros. El frontend distingue falta de disponibilidad de un
+inventario vacío y no incorpora datos simulados en producción.
+
 La documentación de integración y las revisiones futuras no bloqueantes están
 en `DATOS_PENDIENTES_HOME_IMPACTO.md`.
 

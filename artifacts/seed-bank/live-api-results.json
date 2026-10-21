@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-10-21T19:22:05.132Z",
+  "apiOrigin": "http://127.0.0.1:3306",
+  "credentials": "omitted",
+  "collectionsCount": 131,
+  "checkedRecords": 131,
+  "allPagesChecked": true,
+  "checks": [
+    "Anonymous overview and list match frontend schemas and global collection counts.",
+    "All pages are accessible without duplicate or missing collection IDs.",
+    "Every returned record is a seed collection.",
+    "Global collected and available quantities reconcile across all pages, by canonical unit.",
+    "A live detail record matches its list entry and frontend schema.",
+    "Species, inclusive dates and traceability-code filters work on live data.",
+    "Both mint-link filters match the published explorer URL."
+  ],
+  "limitations": []
+}
