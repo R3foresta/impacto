@@ -33,6 +33,13 @@ npm run dev
 En desarrollo, Vite redirige `/api` al backend NestJS en `http://localhost:3000`.
 Define `VITE_API_URL` en `.env.local` únicamente si necesitas usar otro origen.
 
+Si el backend muestra `Not allowed by CORS` para `http://localhost:5174`,
+comprueba que `VITE_API_URL` esté vacío en `.env` y que `.env.local` no lo
+sobrescriba. Así el navegador consulta `/api` en el mismo puerto del portal y
+Vite envía la solicitud a `localhost:3000`. Esto funciona aunque Vite use otro
+puerto porque `5173` ya esté ocupado. Reinicia `npm run dev` después de cambiar
+las variables de entorno y recarga la página.
+
 Las rutas relativas de fotografías públicas se resuelven contra el origen de la
 API configurada, también en resúmenes, campañas, registros y galerías. Las URLs
 absolutas publicadas conservan su destino. No se requieren credenciales para
